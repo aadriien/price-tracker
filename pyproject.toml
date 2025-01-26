@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.poetry]
+name = "price-tracker"
+version = "0.1.0"
+description = "A web scraper to track product prices"
+authors = ["Adrien Lynch <adriienlynch@gmail.com>"]
+
+packages = [
+    { include = "src" }
+]
+
+[tool.poetry.dependencies]
+python = ">=3.8.1" 
+
+requests = ">2.28.1"
+beautifulsoup4 = ">4.11.1"
+pandas = ">1.5.1"
+twilio = ">7.12.0"
+flake8 = "^7.1.1"
+
+[tool.poetry.dev-dependencies]
+# Development dependencies here, e.g. testing frameworks
+pytest = ">7.0"

@@ -20,7 +20,7 @@ install:
 	$(POETRY) install
 
 run:
-	$(POETRY) run python src/scraper.py
+	$(POETRY) run python src/main.py
 
 lint:
 	@which flake8 > /dev/null || (echo "flake8 not found. Installing..."; $(POETRY) add flake8)

@@ -1,4 +1,8 @@
 .venv/
+.env
+secrets/
 __pycache__/
 *.pyc
 data/*.csv
+poetry.lock
+draft-others/

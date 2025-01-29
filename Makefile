@@ -3,6 +3,9 @@
 POETRY = poetry
 VENV_DIR = .venv
 
+.PHONY: tests
+
+
 all: check-poetry check-venv install run
 
 check-poetry:

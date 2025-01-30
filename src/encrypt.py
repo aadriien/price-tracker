@@ -57,7 +57,7 @@ def load_env_vars():
 
     if not (gmail_user and gmail_password):
         raise ValueError("GMAIL_USER and GMAIL_PASSWORD must be set in .env")
-    return gmail_user, gmail_password
+    return {"GMAIL_USER": gmail_user, "GMAIL_PASSWORD": gmail_password}
 
 
 # Encrypt data and save it to file
@@ -77,6 +77,5 @@ def decrypt_data(key, input_file=CREDENTIALS_FILE):
 
     decrypted_data = cipher.decrypt(encrypted_data).decode()
     return json.loads(decrypted_data)
-
 
 

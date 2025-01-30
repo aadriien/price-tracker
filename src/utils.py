@@ -10,7 +10,10 @@ import imaplib
 from email import policy
 from email.parser import BytesParser
 
-from encrypt import decrypt_data, load_key
+from src.encrypt import (
+    decrypt_data, load_key
+)
+
 
 FROM = "service@chewy.com"
 SUBJECT = "Thanks for your Chewy order!"
@@ -20,12 +23,14 @@ SUBJECT = "Thanks for your Chewy order!"
 def connect_to_gmail():
     credentials = decrypt_data(load_key())
     
-    gmail_user = credentials["user"]
-    gmail_password = credentials["password"]
+    gmail_user = credentials["GMAIL_USER"]
+    gmail_password = credentials["GMAIL_PASSWORD"]
 
     # Establish connection
     mail = imaplib.IMAP4_SSL("imap.gmail.com")
     mail.login(gmail_user, gmail_password)
+
+    print(f"Login of {gmail_user} successful")
     return mail
 
 

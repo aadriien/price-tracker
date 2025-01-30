@@ -20,59 +20,60 @@ import time
 
 
 def scrape_target(url):
-    # Automatically download and manage ChromeDriver
-    options = Options()
-    options.add_argument("--headless")
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    return
+#     # Automatically download and manage ChromeDriver
+#     options = Options()
+#     options.add_argument("--headless")
+#     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
-    try:
-        # Open the URL
-        driver.get(url)
+#     try:
+#         # Open the URL
+#         driver.get(url)
 
-        # Wait for the page to load completely (adjust time if needed)
-        driver.implicitly_wait(5)
+#         # Wait for the page to load completely (adjust time if needed)
+#         driver.implicitly_wait(5)
 
-        # Initialize variables
-        all_product_containers = []
-        previous_product_count = 0
-        scroll_pause_time = 1  # Time to wait for content to load
-        max_products = 100 # Limit to top 100 bestselling (based on URL)
+#         # Initialize variables
+#         all_product_containers = []
+#         previous_product_count = 0
+#         scroll_pause_time = 1  # Time to wait for content to load
+#         max_products = 100 # Limit to top 100 bestselling (based on URL)
 
-        # Scroll the page until no more products are loaded
-        while len(all_product_containers) < max_products:
-            # Get the current page source after scrolling
-            html = driver.page_source
+#         # Scroll the page until no more products are loaded
+#         while len(all_product_containers) < max_products:
+#             # Get the current page source after scrolling
+#             html = driver.page_source
 
-            # Parse the HTML with BeautifulSoup only once after scrolling
-            soup = BeautifulSoup(html, "lxml")
+#             # Parse the HTML with BeautifulSoup only once after scrolling
+#             soup = BeautifulSoup(html, "lxml")
 
-            # Find all product containers
-            product_containers = soup.select(".styles_ndsRow__iT6yG")
-            all_product_containers.extend(product_containers)
+#             # Find all product containers
+#             product_containers = soup.select(".styles_ndsRow__iT6yG")
+#             all_product_containers.extend(product_containers)
 
-            # Check if new products were loaded
-            if len(all_product_containers) == previous_product_count:
-                break  # Exit loop if no new products were loaded
+#             # Check if new products were loaded
+#             if len(all_product_containers) == previous_product_count:
+#                 break  # Exit loop if no new products were loaded
 
-            # Update the previous product count
-            previous_product_count = len(all_product_containers)
+#             # Update the previous product count
+#             previous_product_count = len(all_product_containers)
 
-            # Scroll down to load more products
-            driver.execute_script("window.scrollBy(0, window.innerHeight);")
-            time.sleep(scroll_pause_time)  # Wait for new content to load
+#             # Scroll down to load more products
+#             driver.execute_script("window.scrollBy(0, window.innerHeight);")
+#             time.sleep(scroll_pause_time)  # Wait for new content to load
 
-        all_product_containers = all_product_containers[:max_products]
-        
-        # Print the final product count
-        print(f"Total products found: {len(all_product_containers)}")
+#         all_product_containers = all_product_containers[:max_products]
 
-    finally:
-        # Always close the browser
-        driver.quit()
+#         # Print the final product count
+#         print(f"Total products found: {len(all_product_containers)}")
 
-# Example usage
-# scrape_target("https://www.target.com/c/nintendo-switch-games-video/-/N-p86ax")
-scrape_target("https://www.target.com/c/nintendo-switch-games-video/-/N-p86ax?sortBy=bestselling&moveTo=product-list-grid")
+#     finally:
+#         # Always close the browser
+#         driver.quit()
+
+# # Example usage
+# # scrape_target("https://www.target.com/c/nintendo-switch-games-video/-/N-p86ax")
+# scrape_target("https://www.target.com/c/nintendo-switch-games-video/-/N-p86ax?sortBy=bestselling&moveTo=product-list-grid")
 
 
 

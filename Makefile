@@ -20,7 +20,7 @@ check-venv:
 
 # Dependencies from pyproject.toml
 install:
-	$(POETRY) install
+	@PYTHONWARNINGS="ignore" poetry install --quiet
 
 run:
 	$(POETRY) run python src/main.py

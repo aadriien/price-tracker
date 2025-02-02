@@ -8,8 +8,6 @@
 
 import os
 import base64
-import imaplib
-from email import policy
 from email.parser import BytesParser
 
 from google.oauth2.credentials import Credentials
@@ -62,7 +60,7 @@ def connect_to_gmail():
     return service
 
 
-# Fetch email IDs based on criteria
+# Fetch emails based on criteria
 def fetch_email_IDs(mail, since_date=None):
     search_criteria = f'(FROM "{FROM}" subject:{SUBJECT})'
     if since_date:
@@ -79,26 +77,24 @@ def fetch_email_IDs(mail, since_date=None):
             ).execute()
         else:
             break
-    
-    # email_IDs = results.get("messages", [])
 
     if not email_IDs:
         print("No emails found")
         return []
 
     print(f"Found {len(email_IDs)} emails")
-    
     return [email["id"] for email in email_IDs]
 
 
 # Fetch a specific email by ID
-def fetch_email(mail, email_id):
-    status, data = mail.fetch(email_id, "(RFC822)") # Get entire message
-    if status != "OK":
-        raise Exception(f"Failed to fetch email ID {email_id}")
-    
-    raw_email = data[0][1]
-    email_message = BytesParser(policy=policy.default).parsebytes(raw_email)
-    return email_message
+def fetch_email(mail, email_ID):
+    try:
+        return mail.users().messages().get(userId="me", id=email_ID, format="full").execute()
+    except HttpError as error:
+        if error.resp.status == 404:
+            print(f"Error: Email ID {email_ID} not found")
+        else:
+            print(f"An error occurred: {error}")
+        return None 
 
 

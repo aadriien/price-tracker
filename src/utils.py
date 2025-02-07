@@ -32,21 +32,40 @@ def generate_oauth2_string(email, access_token):
 def authenticate_gmail():
     creds = None
 
-    # Load token from file if exists - otherwise refresh / get new creds
+    # Load token from file if it exists
     if os.path.exists(TOKEN_FILE):
         creds = Credentials.from_authorized_user_file(TOKEN_FILE, SCOPES)
 
+    # Check if creds valid, refresh if expired
     if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())  
-        else:
-            # Run OAuth flow if no valid token
-            flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_FILE, SCOPES)
+        try:
+            if creds and creds.expired and creds.refresh_token:
+                creds.refresh(Request())  
+                print("Token refreshed successfully")
+
+            else:
+                raise Exception("No valid refresh token available")
+
+            # Save refreshed token
+            with open(TOKEN_FILE, "w") as token_file:
+                token_file.write(creds.to_json())
+
+        except Exception as e:
+            print(f"Token refresh failed: {e}")
+            print("Deleting token file and re-authenticating...")
+
+            # Remove invalid JSON token file & restart authentication
+            if os.path.exists(TOKEN_FILE):
+                os.remove(TOKEN_FILE)
+
+            # Run OAuth flow to get new token
+            flow = InstalledAppFlow.from_client_secrets_file(
+                CREDENTIALS_FILE, SCOPES
+            )
             creds = flow.run_local_server(port=0, access_type="offline", prompt="consent")
 
-        # Save updated token
-        with open(TOKEN_FILE, "w") as token_file:
-            token_file.write(creds.to_json())
+            with open(TOKEN_FILE, "w") as token_file:
+                token_file.write(creds.to_json())
 
     return creds
 

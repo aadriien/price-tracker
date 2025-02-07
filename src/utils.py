@@ -8,7 +8,6 @@
 
 import os
 import base64
-from email.parser import BytesParser
 
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
@@ -19,6 +18,8 @@ from googleapiclient.errors import HttpError
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 TOKEN_FILE = "secrets/token.json"
 CREDENTIALS_FILE = "secrets/client_secret_gmail.json"
+
+PURCHASES_FILE = "data/purchase_tracker.csv"
 
 FROM = "service@chewy.com"
 SUBJECT = "Thanks for your Chewy order!"
@@ -116,4 +117,90 @@ def fetch_email(mail, email_ID):
             print(f"An error occurred: {error}")
         return None 
 
+
+
+
+##############################
+###    CSV / data steps    ###
+##############################
+
+import os
+import csv
+from datetime import datetime
+
+COLUMNS = ["email_id", "timestamp", "date", "time", "quantity", "price", "url"]
+
+
+def csv_exists(file_path=PURCHASES_FILE):
+    # Extracts the 'data/' folder path
+    folder = os.path.dirname(file_path)  
+    
+    if not os.path.exists(folder):
+        print(f"Folder '{folder}' not found. Creating it...")
+        os.makedirs(folder)
+
+    if os.path.exists(file_path):
+        return True
+
+    print(f"{file_path} not found. Creating new CSV...")
+    with open(file_path, mode="w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(COLUMNS)
+
+    return False
+
+
+def get_latest_date(file_path=PURCHASES_FILE):
+    # Check if we already have data entries
+    if not csv_exists(file_path):
+        return None 
+
+    timestamps = []
+
+    with open(file_path, mode="r", newline="") as file:
+        reader = csv.DictReader(file)
+        # Loop through rows, extracting timestamps
+        for row in reader:
+            timestamp = row["timestamp"].strip()  
+            if timestamp:
+                timestamps.append(timestamp)
+
+    if not timestamps:
+        return None
+
+    # Convert strs to datetime objects & find most recent
+    try:
+        most_recent = max(datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S") for timestamp in timestamps)
+        return most_recent.strftime("%Y-%m-%d %H:%M:%S") 
+    except ValueError:
+        print("Warning: Invalid date format in CSV")
+        return None
+
+
+def format_date_time(timestamp):
+    try:
+        dt = datetime.strptime(timestamp, "%m-%d-%Y %H:%M:%S")
+        formatted_date = dt.strftime("%B %d, %Y") 
+        formatted_time = dt.strftime("%I:%M %p")  
+        return formatted_date, formatted_time
+    except ValueError:
+        return timestamp, timestamp
+
+
+def append_to_csv(data, file_path=PURCHASES_FILE):
+    with open(file_path, mode="a", newline="") as file:
+        writer = csv.writer(file)
+
+        email_ID = data["id"]
+        timestamp = data["timestamp"]
+        date, time = format_date_time(timestamp)
+
+        # New row for each item, based on email contents (data)
+        for item in data["items"]:
+            url = item["URL"]
+            price = item["price"]
+            quantity = item["quantity"]
+            
+            row = [email_ID, timestamp, date, time, quantity, price, url]
+            writer.writerow(row)
 

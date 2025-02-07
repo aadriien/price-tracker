@@ -7,7 +7,10 @@
 ###############################################################################
 
 
-from src.utils import connect_to_gmail, fetch_email_IDs, fetch_email 
+from src.utils import (
+    connect_to_gmail, fetch_email_IDs, fetch_email, 
+    get_latest_date, append_to_csv 
+)
 from datetime import datetime
 from bs4 import BeautifulSoup, Comment
 import pytz
@@ -127,24 +130,28 @@ def get_item_URLs_prices_quantities(html_body):
 
 def parse_emails():
     mail = connect_to_gmail()
-    email_IDs = fetch_email_IDs(mail)
 
-    for ID in email_IDs[:1]:
+    # Only retrieve new emails (not yet logged)
+    latest_date = get_latest_date()
+    email_IDs = fetch_email_IDs(mail, latest_date)
+
+    for ID in email_IDs:
         email = fetch_email(mail, ID)
 
-        id = email.get("id", "Unknown ID")
+        email_ID = email.get("id", "Unknown ID")
         timestamp = get_email_date(email)
+
         payload = get_email_body(email)
+        items = get_item_URLs_prices_quantities(payload)
+
+        email_data = {
+            "id": email_ID,
+            "timestamp": timestamp,
+            "items": items
+        }
+        append_to_csv(email_data)
 
         
-        print("\n\n\n\n")
-        print(f"ID: {id}\n")
-        print(f"Timestamp: {timestamp}\n")
-        # print(f"Payload: {payload}")
-
-        items = get_item_URLs_prices_quantities(payload)
-        for item in items:
-            print(item, "\n")
         
 
 

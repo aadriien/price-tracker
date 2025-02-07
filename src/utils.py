@@ -141,7 +141,7 @@ import os
 import csv
 from datetime import datetime
 
-COLUMNS = ["email_id", "timestamp", "date", "time", "quantity", "price", "url"]
+COLUMNS = ["email_id", "timestamp", "date", "time", "name", "quantity", "price", "url"]
 
 
 def csv_exists(file_path=PURCHASES_FILE):
@@ -210,11 +210,12 @@ def append_to_csv(data, file_path=PURCHASES_FILE):
 
         # New row for each item, based on email contents (data)
         for item in data["items"]:
+            name = item["name"]
             url = item["URL"]
             price = item["price"]
             quantity = item["quantity"]
             
-            row = [email_ID, timestamp, date, time, quantity, price, url]
+            row = [email_ID, timestamp, date, time, name, quantity, price, url]
             writer.writerow(row)
 
 

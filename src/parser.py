@@ -220,10 +220,9 @@ def parse_emails():
 
     # Only retrieve new emails (not yet logged)
     latest_date = get_latest_date()
-    # email_IDs = fetch_email_IDs(mail, latest_date)
-    email_IDs = fetch_email_IDs(mail)
+    email_IDs = fetch_email_IDs(mail, latest_date)
 
-    for ID in email_IDs[:1]:
+    for ID in email_IDs:
         email = fetch_email(mail, ID)
 
         email_ID = email.get("id", "Unknown ID")
@@ -241,7 +240,6 @@ def parse_emails():
 
         if not validate_HTML_with_plaintext(html_purchases, plain_purchases):
             raise ValidationErr("Error, HTML does not match plaintext")
-
 
         email_data = {
             "id": email_ID,

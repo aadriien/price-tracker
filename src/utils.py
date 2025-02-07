@@ -18,8 +18,13 @@ from googleapiclient.errors import HttpError
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 TOKEN_FILE = "secrets/token.json"
 CREDENTIALS_FILE = "secrets/client_secret_gmail.json"
-
 PURCHASES_FILE = "data/purchase_tracker.csv"
+
+GMAIL_TIMESTAMP_FORMAT = "%Y/%m/%d"
+TIMESTAMP_FORMAT = "%m-%d-%Y %H:%M:%S"
+DATE_FORMAT = "%B %d, %Y"
+TIME_FORMAT = "%I:%M %p"
+
 
 FROM = "service@chewy.com"
 SUBJECT = "Thanks for your Chewy order!"
@@ -80,11 +85,19 @@ def connect_to_gmail():
     return service
 
 
+def format_date_for_gmail(date_str):
+    # 'MM-DD-YYYY HH:MM:SS' --> 'YYYY/MM/DD' for Gmail search
+    dt = datetime.strptime(date_str, TIMESTAMP_FORMAT)
+    return dt.strftime(GMAIL_TIMESTAMP_FORMAT)
+
+
 # Fetch emails based on criteria
 def fetch_email_IDs(mail, since_date=None):
     search_criteria = f'(FROM "{FROM}" subject:{SUBJECT})'
+
     if since_date:
-        search_criteria += f' SINCE "{since_date}"'
+        formatted_date = format_date_for_gmail(since_date)
+        search_criteria += f' SINCE {formatted_date}'
 
     results = mail.users().messages().list(userId="me", q=search_criteria).execute()
     
@@ -99,10 +112,10 @@ def fetch_email_IDs(mail, since_date=None):
             break
 
     if not email_IDs:
-        print("No emails found")
+        print(f"No emails found since date/time: {since_date}")
         return []
 
-    print(f"Found {len(email_IDs)} emails")
+    print(f"Found {len(email_IDs)} emails since date/time: {since_date}")
     return [email["id"] for email in email_IDs]
 
 
@@ -170,8 +183,8 @@ def get_latest_date(file_path=PURCHASES_FILE):
 
     # Convert strs to datetime objects & find most recent
     try:
-        most_recent = max(datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S") for timestamp in timestamps)
-        return most_recent.strftime("%Y-%m-%d %H:%M:%S") 
+        most_recent = max(datetime.strptime(timestamp, TIMESTAMP_FORMAT) for timestamp in timestamps)
+        return most_recent.strftime(TIMESTAMP_FORMAT) 
     except ValueError:
         print("Warning: Invalid date format in CSV")
         return None
@@ -179,9 +192,9 @@ def get_latest_date(file_path=PURCHASES_FILE):
 
 def format_date_time(timestamp):
     try:
-        dt = datetime.strptime(timestamp, "%m-%d-%Y %H:%M:%S")
-        formatted_date = dt.strftime("%B %d, %Y") 
-        formatted_time = dt.strftime("%I:%M %p")  
+        dt = datetime.strptime(timestamp, TIMESTAMP_FORMAT)
+        formatted_date = dt.strftime(DATE_FORMAT) 
+        formatted_time = dt.strftime(TIME_FORMAT)  
         return formatted_date, formatted_time
     except ValueError:
         return timestamp, timestamp
@@ -203,4 +216,6 @@ def append_to_csv(data, file_path=PURCHASES_FILE):
             
             row = [email_ID, timestamp, date, time, quantity, price, url]
             writer.writerow(row)
+
+
 

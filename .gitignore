@@ -4,6 +4,7 @@ secrets/
 __pycache__/
 *.pyc
 data/*.csv
+.DS_Store
 **/.DS_Store
 poetry.lock
 draft-others/

@@ -18,6 +18,7 @@ from googleapiclient.errors import HttpError
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 TOKEN_FILE = "secrets/token.json"
 CREDENTIALS_FILE = "secrets/client_secret_gmail.json"
+
 PURCHASES_FILE = "data/purchase_tracker.csv"
 
 GMAIL_TIMESTAMP_FORMAT = "%Y/%m/%d"
@@ -144,33 +145,32 @@ from datetime import datetime
 COLUMNS = ["email_id", "timestamp", "date", "time", "name", "quantity", "price", "url"]
 
 
-def csv_exists(file_path=PURCHASES_FILE):
+def csv_exists(csv_file=PURCHASES_FILE):
     # Extracts the 'data/' folder path
-    folder = os.path.dirname(file_path)  
+    folder = os.path.dirname(csv_file)  
     
     if not os.path.exists(folder):
         print(f"Folder '{folder}' not found. Creating it...")
         os.makedirs(folder)
 
-    if os.path.exists(file_path):
+    if os.path.exists(csv_file):
         return True
 
-    print(f"{file_path} not found. Creating new CSV...")
-    with open(file_path, mode="w", newline="") as file:
+    print(f"{csv_file} not found. Creating new CSV...")
+    with open(csv_file, mode="w", newline="") as file:
         writer = csv.writer(file)
         writer.writerow(COLUMNS)
 
     return False
 
 
-def get_latest_date(file_path=PURCHASES_FILE):
-    # Check if we already have data entries
-    if not csv_exists(file_path):
-        return None 
+def get_latest_date(csv_file):
+    if not csv_file:
+        raise ValueError("Error, missing CSV file")
 
     timestamps = []
 
-    with open(file_path, mode="r", newline="") as file:
+    with open(csv_file, mode="r", newline="") as file:
         reader = csv.DictReader(file)
         # Loop through rows, extracting timestamps
         for row in reader:
@@ -200,8 +200,8 @@ def format_date_time(timestamp):
         return timestamp, timestamp
 
 
-def append_to_csv(data, file_path=PURCHASES_FILE):
-    with open(file_path, mode="a", newline="") as file:
+def append_to_csv(data, csv_file=PURCHASES_FILE):
+    with open(csv_file, mode="a", newline="") as file:
         writer = csv.writer(file)
 
         email_ID = data["id"]

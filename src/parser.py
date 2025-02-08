@@ -10,7 +10,8 @@
 from xml.dom import ValidationErr
 from src.utils import (
     connect_to_gmail, fetch_email_IDs, fetch_email, 
-    get_latest_date, append_to_csv 
+    csv_exists, get_latest_date, append_to_csv,
+    PURCHASES_FILE 
 )
 from datetime import datetime
 from bs4 import BeautifulSoup, Comment
@@ -219,7 +220,7 @@ def parse_emails():
     mail = connect_to_gmail()
 
     # Only retrieve new emails (not yet logged)
-    latest_date = get_latest_date()
+    latest_date = get_latest_date(PURCHASES_FILE) if csv_exists() else None
     email_IDs = fetch_email_IDs(mail, latest_date)
 
     for ID in email_IDs:

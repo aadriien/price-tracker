@@ -9,13 +9,15 @@
 import os
 import pandas as pd
 
-from src.utils import (
+from src.data_utils import (
     get_latest_date,
-    PURCHASES_FILE,
-    PRICE_TRACKER_FILE,
-    PURCHASES_COLUMNS_BRIEF,
-    PRICES_COLUMNS_ANALYSIS
+    PURCHASES_FILE
 )
+
+PRICE_TRACKER_FILE = "data/price_tracker.csv"
+
+PURCHASES_COLUMNS_BRIEF = ["timestamp", "name", "quantity", "price"]
+PRICES_COLUMNS_ANALYSIS = ["price", "prev_price", "price_change", "percent_change", "avg_price", "diff_from_avg"]
 
 
 def format_price(price):

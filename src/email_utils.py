@@ -1,13 +1,13 @@
 ###############################################################################
-##  `utils.py`                                                               ##
+##  `email_utils.py`                                                         ##
 ##                                                                           ##
-##  Purpose: Administers notifications, data exports, etc in accordance      ##
-##           with user-specified flags & notice systems                      ##
+##  Purpose: Handles pipelines for email connectivity (API access / auth)    ##
 ###############################################################################
 
 
 import os
 import base64
+from datetime import datetime
 from dotenv import load_dotenv
 
 from google.oauth2.credentials import Credentials
@@ -16,29 +16,26 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
+from src.data_utils import TIMESTAMP_FORMAT
+
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 TOKEN_FILE = "secrets/token.json"
 CREDENTIALS_FILE = "secrets/client_secret_gmail.json"
 
-PURCHASES_FILE = "data/purchase_tracker.csv"
-PRICE_TRACKER_FILE = "data/price_tracker.csv"
-
 GMAIL_TIMESTAMP_FORMAT = "%Y/%m/%d"
-TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
-DATE_FORMAT = "%B %d, %Y"
-TIME_FORMAT = "%I:%M %p"
 
 
 def load_env_vars():
     # Load email filter parameters
-    global FROM, SUBJECT
     load_dotenv()
 
-    FROM = os.getenv("GMAIL_FROM")
-    SUBJECT = os.getenv("GMAIL_SUBJECT")
+    from_filter = os.getenv("GMAIL_FROM")
+    subject_filter = os.getenv("GMAIL_SUBJECT")
 
-    if not FROM and SUBJECT:
+    if not from_filter and subject_filter:
         raise ValueError("GMAIL_FROM and GMAIL_SUBJECT must be set in .env to filter")
+
+    return from_filter, subject_filter
 
 
 def generate_oauth2_string(email, access_token):
@@ -104,6 +101,7 @@ def format_date_for_gmail(date_str):
 
 # Fetch emails based on criteria
 def fetch_email_IDs(mail, since_date=None):
+    FROM, SUBJECT = load_env_vars()
     search_criteria = f'(FROM "{FROM}" subject:{SUBJECT})'
 
     if since_date:
@@ -140,96 +138,5 @@ def fetch_email(mail, email_ID):
         else:
             print(f"An error occurred: {error}")
         return None 
-
-
-
-
-##############################
-###    CSV / data steps    ###
-##############################
-
-import os
-import csv
-from datetime import datetime
-
-PURCHASES_COLUMNS = ["email_id", "timestamp", "date", "time", "name", "quantity", "price", "url"]
-PURCHASES_COLUMNS_BRIEF = ["timestamp", "name", "quantity", "price"]
-
-PRICES_COLUMNS_ANALYSIS = ["price", "prev_price", "price_change", "percent_change", "avg_price", "diff_from_avg"]
-
-
-def csv_exists(csv_file=PURCHASES_FILE):
-    # Extracts the 'data/' folder path
-    folder = os.path.dirname(csv_file)  
-    
-    if not os.path.exists(folder):
-        print(f"Folder '{folder}' not found. Creating it...")
-        os.makedirs(folder)
-
-    if os.path.exists(csv_file):
-        return True
-
-    print(f"{csv_file} not found. Creating new CSV...")
-    with open(csv_file, mode="w", newline="") as file:
-        writer = csv.writer(file)
-        writer.writerow(PURCHASES_COLUMNS)
-
-    return False
-
-
-def get_latest_date(csv_file):
-    if not csv_file:
-        raise ValueError("Error, missing CSV file")
-
-    timestamps = []
-
-    with open(csv_file, mode="r", newline="") as file:
-        reader = csv.DictReader(file)
-        # Loop through rows, extracting timestamps
-        for row in reader:
-            timestamp = row["timestamp"].strip()  
-            if timestamp:
-                timestamps.append(timestamp)
-
-    if not timestamps:
-        return None
-
-    # Convert strs to datetime objects & find most recent
-    try:
-        most_recent = max(datetime.strptime(timestamp, TIMESTAMP_FORMAT) for timestamp in timestamps)
-        return most_recent.strftime(TIMESTAMP_FORMAT) 
-    except ValueError:
-        print("Warning: Invalid date format in CSV")
-        return None
-
-
-def format_date_time(timestamp):
-    try:
-        dt = datetime.strptime(timestamp, TIMESTAMP_FORMAT)
-        formatted_date = dt.strftime(DATE_FORMAT) 
-        formatted_time = dt.strftime(TIME_FORMAT)  
-        return formatted_date, formatted_time
-    except ValueError:
-        return timestamp, timestamp
-
-
-def append_to_csv(data, csv_file=PURCHASES_FILE):
-    with open(csv_file, mode="a", newline="") as file:
-        writer = csv.writer(file)
-
-        email_ID = data["id"]
-        timestamp = data["timestamp"]
-        date, time = format_date_time(timestamp)
-
-        # New row for each item, based on email contents (data)
-        for item in data["items"]:
-            name = item["name"]
-            url = item["URL"]
-            price = item["price"]
-            quantity = item["quantity"]
-            
-            row = [email_ID, timestamp, date, time, name, quantity, price, url]
-            writer.writerow(row)
-
 
 

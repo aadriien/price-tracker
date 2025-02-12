@@ -8,17 +8,20 @@
 
 
 from xml.dom import ValidationErr
-from src.utils import (
-    connect_to_gmail, fetch_email_IDs, fetch_email, 
-    csv_exists, get_latest_date, append_to_csv,
-    TIMESTAMP_FORMAT,
-    PURCHASES_FILE 
-)
 from datetime import datetime
 from bs4 import BeautifulSoup, Comment
 import pytz
 import base64
 import re
+
+from src.email_utils import (
+    connect_to_gmail, fetch_email_IDs, fetch_email 
+)
+from src.data_utils import (
+    purchases_csv_exists, get_latest_date, append_to_purchases_csv,
+    TIMESTAMP_FORMAT,
+    PURCHASES_FILE 
+)
 
 
 def get_email_date(email, timezone="America/New_York"):
@@ -221,7 +224,7 @@ def parse_emails():
     mail = connect_to_gmail()
 
     # Only retrieve new emails (not yet logged)
-    latest_date = get_latest_date(PURCHASES_FILE) if csv_exists() else None
+    latest_date = get_latest_date(PURCHASES_FILE) if purchases_csv_exists() else None
     email_IDs = fetch_email_IDs(mail, latest_date)
 
     for ID in email_IDs:
@@ -248,7 +251,7 @@ def parse_emails():
             "timestamp": timestamp,
             "items": html_purchases
         }
-        append_to_csv(email_data)
+        append_to_purchases_csv(email_data)
 
     # Flag whether we have any new emails to process
     return True if email_IDs else False    

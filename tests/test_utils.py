@@ -7,9 +7,8 @@
 
 
 import pytest
-import base64
-from unittest.mock import patch, MagicMock
-from src.utils import fetch_email_IDs, fetch_email
+from unittest.mock import MagicMock
+from src.email_utils import fetch_email_IDs, fetch_email 
 
 
 @pytest.fixture
@@ -23,12 +22,19 @@ def mock_email_ids():
 
 
 @pytest.fixture
-def mock_email_payload():
-    # Mock raw email response in base64-encoded form
-     # Message: "Hello this is a test email."
-    raw_email_bytes = base64.b64decode("SGVsbG8gdGhpcyBpcyBhIHRlc3QgZW1haWwu") 
-    
-    return ("OK", [(None, raw_email_bytes)])
+def email_body():
+    return "This is a test email"
+
+
+@pytest.fixture
+def mock_email_payload(email_body):
+    return {
+        "payload": {
+            "body": {
+                "data": email_body
+            }
+        }
+    }
 
 
 def test_fetch_email_IDs(mock_mail, mock_email_ids):
@@ -38,11 +44,11 @@ def test_fetch_email_IDs(mock_mail, mock_email_ids):
     assert email_ids == [message["id"] for message in mock_email_ids]
 
 
-def test_fetch_email(mock_mail, mock_email_payload):
-    mock_mail.fetch.return_value = mock_email_payload
+def test_fetch_email(mock_mail, mock_email_payload, email_body):
+    mock_mail.users().messages().get().execute.return_value = mock_email_payload
 
     email_message = fetch_email(mock_mail, "1")
 
     assert email_message is not None
-    assert email_message.get_payload() == "Hello this is a test email."
+    assert email_message["payload"]["body"]["data"] == email_body
 

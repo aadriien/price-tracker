@@ -11,6 +11,7 @@ from xml.dom import ValidationErr
 from src.utils import (
     connect_to_gmail, fetch_email_IDs, fetch_email, 
     csv_exists, get_latest_date, append_to_csv,
+    TIMESTAMP_FORMAT,
     PURCHASES_FILE 
 )
 from datetime import datetime
@@ -29,7 +30,7 @@ def get_email_date(email, timezone="America/New_York"):
     utc_time = datetime.utcfromtimestamp(timestamp).replace(tzinfo=pytz.utc)
     local_time = utc_time.astimezone(pytz.timezone(timezone))
 
-    return local_time.strftime("%m-%d-%Y %H:%M:%S")
+    return local_time.strftime(TIMESTAMP_FORMAT)
 
 
 def get_email_body(email):
@@ -249,9 +250,9 @@ def parse_emails():
         }
         append_to_csv(email_data)
 
+    # Flag whether we have any new emails to process
+    return True if email_IDs else False    
         
-        
-
 
 
 

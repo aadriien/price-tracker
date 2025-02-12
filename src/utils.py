@@ -20,9 +20,10 @@ TOKEN_FILE = "secrets/token.json"
 CREDENTIALS_FILE = "secrets/client_secret_gmail.json"
 
 PURCHASES_FILE = "data/purchase_tracker.csv"
+PRICE_TRACKER_FILE = "data/price_tracker.csv"
 
 GMAIL_TIMESTAMP_FORMAT = "%Y/%m/%d"
-TIMESTAMP_FORMAT = "%m-%d-%Y %H:%M:%S"
+TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
 DATE_FORMAT = "%B %d, %Y"
 TIME_FORMAT = "%I:%M %p"
 

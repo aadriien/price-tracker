@@ -10,8 +10,9 @@ from src.scraper import scrape_target # Web scraping logic
 
 
 def main():
-    parse_emails()
-    track_prices()
+    new_emails = parse_emails()
+    if new_emails:
+        track_prices()
 
 
     

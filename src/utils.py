@@ -8,6 +8,7 @@
 
 import os
 import base64
+from dotenv import load_dotenv
 
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
@@ -28,8 +29,16 @@ DATE_FORMAT = "%B %d, %Y"
 TIME_FORMAT = "%I:%M %p"
 
 
-FROM = "service@chewy.com"
-SUBJECT = "Thanks for your Chewy order!"
+def load_env_vars():
+    # Load email filter parameters
+    global FROM, SUBJECT
+    load_dotenv()
+
+    FROM = os.getenv("GMAIL_FROM")
+    SUBJECT = os.getenv("GMAIL_SUBJECT")
+
+    if not FROM and SUBJECT:
+        raise ValueError("GMAIL_FROM and GMAIL_SUBJECT must be set in .env to filter")
 
 
 def generate_oauth2_string(email, access_token):
@@ -88,7 +97,7 @@ def connect_to_gmail():
 
 
 def format_date_for_gmail(date_str):
-    # 'MM-DD-YYYY HH:MM:SS' --> 'YYYY/MM/DD' for Gmail search
+    # 'YYYY-MM-DD HH:MM:SS' --> 'YYYY/MM/DD' for Gmail search
     dt = datetime.strptime(date_str, TIMESTAMP_FORMAT)
     return dt.strftime(GMAIL_TIMESTAMP_FORMAT)
 
@@ -143,7 +152,10 @@ import os
 import csv
 from datetime import datetime
 
-COLUMNS = ["email_id", "timestamp", "date", "time", "name", "quantity", "price", "url"]
+PURCHASES_COLUMNS = ["email_id", "timestamp", "date", "time", "name", "quantity", "price", "url"]
+PURCHASES_COLUMNS_BRIEF = ["timestamp", "name", "quantity", "price"]
+
+PRICES_COLUMNS_ANALYSIS = ["price", "prev_price", "price_change", "percent_change", "avg_price", "diff_from_avg"]
 
 
 def csv_exists(csv_file=PURCHASES_FILE):
@@ -160,7 +172,7 @@ def csv_exists(csv_file=PURCHASES_FILE):
     print(f"{csv_file} not found. Creating new CSV...")
     with open(csv_file, mode="w", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow(COLUMNS)
+        writer.writerow(PURCHASES_COLUMNS)
 
     return False
 

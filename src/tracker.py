@@ -12,7 +12,9 @@ import pandas as pd
 from src.utils import (
     get_latest_date,
     PURCHASES_FILE,
-    PRICE_TRACKER_FILE
+    PRICE_TRACKER_FILE,
+    PURCHASES_COLUMNS_BRIEF,
+    PRICES_COLUMNS_ANALYSIS
 )
 
 
@@ -27,24 +29,20 @@ def format_percentage(percentage):
 def format_price_log_for_display(price_log):
     # Restore $ sign, % sign, etc only for export/display
     price_log_display = price_log.copy()
-    price_log_display["price"] = price_log_display["price"].apply(format_price)
 
-    price_log_display["prev_price"] = price_log_display["prev_price"].apply(format_price)
-    price_log_display["price_change"] = price_log_display["price_change"].apply(format_price)
-
-    price_log_display["percent_change"] = price_log_display["percent_change"].apply(format_percentage)
-
-    price_log_display["avg_price"] = price_log_display["avg_price"].apply(format_price)
-    price_log_display["diff_from_avg"] = price_log_display["diff_from_avg"].apply(format_price)
+    for col in PRICES_COLUMNS_ANALYSIS:
+        if col == "percent_change":
+            price_log_display[col] = price_log_display[col].apply(format_percentage)
+        else:
+            price_log_display[col] = price_log_display[col].apply(format_price)
 
     return price_log_display
 
 
 def track_price_changes(since=None):
-    PURCHASE_COLUMNS = ["timestamp", "name", "quantity", "price"]
-    
     # Automatically create datetime instances form CSV for sorting
-    price_log = pd.read_csv(PURCHASES_FILE, parse_dates=["timestamp"], usecols=PURCHASE_COLUMNS)
+    price_log = pd.read_csv(PURCHASES_FILE, parse_dates=["timestamp"], usecols=PURCHASES_COLUMNS_BRIEF)
+    
     if since:
         price_log = price_log[price_log["timestamp"] > pd.to_datetime(since)]
     

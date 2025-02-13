@@ -18,10 +18,12 @@ from src.email_utils import (
     connect_to_gmail, fetch_email_IDs, fetch_email 
 )
 from src.data_utils import (
-    purchases_csv_exists, get_latest_date, append_to_purchases_csv,
+    csv_exists, get_latest_date, append_to_purchases_csv,
     TIMESTAMP_FORMAT,
     PURCHASES_FILE 
 )
+
+PURCHASES_COLUMNS = ["email_id", "timestamp", "date", "time", "name", "quantity", "price", "url"]
 
 
 def get_email_date(email, timezone="America/New_York"):
@@ -220,12 +222,22 @@ def validate_HTML_with_plaintext(html_items, plain_items):
     return html_set == plain_set
 
 
-def parse_emails():
+def check_emails():
     mail = connect_to_gmail()
+    latest_date = None
 
     # Only retrieve new emails (not yet logged)
-    latest_date = get_latest_date(PURCHASES_FILE) if purchases_csv_exists() else None
-    email_IDs = fetch_email_IDs(mail, latest_date)
+    if csv_exists(PURCHASES_FILE, PURCHASES_COLUMNS):
+        latest_date = get_latest_date(PURCHASES_FILE)
+
+    email_IDs = fetch_email_IDs(mail, latest_date)  
+
+    if email_IDs:
+        return parse_emails(mail, email_IDs)
+
+
+def parse_emails(mail, email_IDs):
+    new_items = []
 
     for ID in email_IDs:
         email = fetch_email(mail, ID)
@@ -251,11 +263,11 @@ def parse_emails():
             "timestamp": timestamp,
             "items": html_purchases
         }
-        append_to_purchases_csv(email_data)
+        curr_items = append_to_purchases_csv(email_data)
+        new_items.extend(curr_items)
 
-    # Flag whether we have any new emails to process
-    return True if email_IDs else False    
+    # Flag whether we have any new email items to process
+    return new_items   
         
-
 
 

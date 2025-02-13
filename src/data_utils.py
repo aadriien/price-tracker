@@ -7,34 +7,47 @@
 
 import os
 import csv
+import pandas as pd
 from datetime import datetime
 
-PURCHASES_FILE = "data/purchase_tracker.csv"
 
-PURCHASES_COLUMNS = ["email_id", "timestamp", "date", "time", "name", "quantity", "price", "url"]
+PURCHASES_FILE = "data/purchase_tracker.csv"
+PRICE_TRACKER_FILE = "data/price_tracker.csv"
 
 TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
 DATE_FORMAT = "%B %d, %Y"
 TIME_FORMAT = "%I:%M %p"
 
 
-def purchases_csv_exists():
+def csv_exists(csv_file, create_header=None):
     # Extracts the 'data/' folder path
-    folder = os.path.dirname(PURCHASES_FILE)  
+    folder = os.path.dirname(csv_file)  
     
     if not os.path.exists(folder):
         print(f"Folder '{folder}' not found. Creating it...")
         os.makedirs(folder)
 
-    if os.path.exists(PURCHASES_FILE):
+    if os.path.exists(csv_file):
         return True
 
-    print(f"{PURCHASES_FILE} not found. Creating new CSV...")
-    with open(PURCHASES_FILE, mode="w", newline="") as file:
-        writer = csv.writer(file)
-        writer.writerow(PURCHASES_COLUMNS)
-
+    # Provide option to create CSV (with columns) if doesn't yet exist
+    if create_header:
+        create_csv(csv_file, create_header)
+    
     return False
+
+
+def create_csv(csv_file, header):
+    if csv_exists(csv_file):
+        raise ValueError("Error, {csv_file} already exists")
+    if not header:
+        raise ValueError("Error, missing CSV header columns")
+
+    # If CSV doesn't yet exist, then create & populate with header columns
+    print(f"{csv_file} not found. Creating new CSV...")
+    with open(csv_file, mode="w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(header)
 
 
 def get_latest_date(csv_file):
@@ -74,6 +87,8 @@ def format_date_time(timestamp):
 
 
 def append_to_purchases_csv(data):
+    item_names = []
+
     with open(PURCHASES_FILE, mode="a", newline="") as file:
         writer = csv.writer(file)
 
@@ -90,6 +105,28 @@ def append_to_purchases_csv(data):
             
             row = [email_ID, timestamp, date, time, name, quantity, price, url]
             writer.writerow(row)
+
+            item_names.append(name)
+
+    # Return the new products we've just added
+    return item_names
+
+
+def read_purchases_prices_csv(csv_file, columns):
+    if not csv_exists(csv_file):
+        raise ValueError("Error, missing CSV file")
+    if not columns:
+        raise ValueError("Error, missing columns")
+
+    return pd.read_csv(csv_file, parse_dates=["timestamp"], usecols=columns)
+
+
+def update_purchases_csv(tracked_items):
+    if tracked_items.empty:
+        raise ValueError("Error, missing tracked items, cannot update")
+
+    tracked_items = tracked_items.sort_values(by=["name", "timestamp"], ascending=[True, False])
+    tracked_items.to_csv(PRICE_TRACKER_FILE, index=False)
 
 
 

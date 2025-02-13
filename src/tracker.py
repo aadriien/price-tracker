@@ -6,15 +6,12 @@
 ###############################################################################
 
 
-import os
 import pandas as pd
 
 from src.data_utils import (
-    get_latest_date,
-    PURCHASES_FILE
+    csv_exists, read_purchases_prices_csv, update_purchases_csv,
+    PURCHASES_FILE, PRICE_TRACKER_FILE
 )
-
-PRICE_TRACKER_FILE = "data/price_tracker.csv"
 
 PURCHASES_COLUMNS_BRIEF = ["timestamp", "name", "quantity", "price"]
 PRICES_COLUMNS_ANALYSIS = ["price", "prev_price", "price_change", "percent_change", "avg_price", "diff_from_avg"]
@@ -41,55 +38,52 @@ def format_price_log_for_display(price_log):
     return price_log_display
 
 
-def track_price_changes(since=None):
-    # Automatically create datetime instances form CSV for sorting
-    price_log = pd.read_csv(PURCHASES_FILE, parse_dates=["timestamp"], usecols=PURCHASES_COLUMNS_BRIEF)
-    
-    if since:
-        price_log = price_log[price_log["timestamp"] > pd.to_datetime(since)]
-    
-    price_log = price_log.sort_values(by=["name", "timestamp"]) 
-
+def calculate_price_deltas(items):
+    items = items.sort_values(by=["name", "timestamp"])
+  
     # Remove $ sign & convert prices to float for math
-    price_log["price"] = price_log["price"].replace(r"[\$,]", "", regex=True).astype(float)
+    items["price"] = items["price"].replace(r"[\$,]", "", regex=True).astype(float)
 
-    price_log["prev_price"] = price_log.groupby("name")["price"].shift(1) 
-    price_log["price_change"] = price_log["price"] - price_log["prev_price"] 
-    price_log["percent_change"] = (price_log["price_change"] / price_log["prev_price"]) * 100
+    items["prev_price"] = items.groupby("name")["price"].shift(1) 
+    items["price_change"] = items["price"] - items["prev_price"] 
+    items["percent_change"] = (items["price_change"] / items["prev_price"]) * 100
 
     # Track rolling average (mean up until & including curr row, i.e.
     # disregard any future purchases, only focus on avg until this point)
-    price_log["avg_price"] = (
-        price_log.groupby("name")["price"]
+    items["avg_price"] = (
+        items.groupby("name")["price"]
         .expanding()
         .mean()
         .reset_index(level=0, drop=True)
     )
-    price_log["diff_from_avg"] = price_log["price"] - price_log["avg_price"] 
+    items["diff_from_avg"] = items["price"] - items["avg_price"] 
     
-    return price_log
+    return items
 
 
-def update_price_tracker(csv_file=PRICE_TRACKER_FILE):
-    # If the file doesn't exist, create it with headers & populate with logs
-    if not os.path.exists(csv_file):
-        new_price_logs = track_price_changes().sort_values(by=["name", "timestamp"], ascending=[True, False])
-        format_price_log_for_display(new_price_logs).to_csv(csv_file, index=False)
+def track_prices(new_items):
+    # Automatically create datetime instances from CSV for sorting
+    all_purchases = read_purchases_prices_csv(PURCHASES_FILE, PURCHASES_COLUMNS_BRIEF)
+    items_to_update = all_purchases[all_purchases["name"].isin(new_items)].copy()
+
+    tracked_items = calculate_price_deltas(items_to_update)
+    tracked_and_formatted = format_price_log_for_display(tracked_items)
+
+    # If we already have price tracking data, combine updated with unchanged
+    if csv_exists(PRICE_TRACKER_FILE):
+        prev_tracked = read_purchases_prices_csv(PRICE_TRACKER_FILE, PURCHASES_COLUMNS_BRIEF)
+        unchanged_items = prev_tracked[~prev_tracked["name"].isin(new_items)]
+
+        all_tracked = pd.concat([unchanged_items, tracked_and_formatted], ignore_index=True)
     else:
-        # Find where we left off, then add new data without loading full file
-        latest_date = get_latest_date(csv_file)
-        new_price_logs = track_price_changes(latest_date)
+        # No existing file, so just use the new formatted data
+        all_tracked = tracked_and_formatted
 
-        format_price_log_for_display(new_price_logs).to_csv(csv_file, mode="a", header=False, index=False)
-        
-        # Now load, sort, and overwrite for proper organization
-        sorted_price_logs = pd.read_csv(csv_file, parse_dates=["timestamp"])
-        sorted_price_logs = sorted_price_logs.sort_values(by=["name", "timestamp"], ascending=[True, False])
-        sorted_price_logs.to_csv(csv_file, index=False)
+    update_purchases_csv(all_tracked)
 
-
-def track_prices():
-    update_price_tracker()
+    
+    
+ 
 
 
 

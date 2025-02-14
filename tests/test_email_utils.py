@@ -1,8 +1,7 @@
 ###############################################################################
-##  `test_utils.py`                                                          ##
+##  `test_email_utils.py`                                                    ##
 ##                                                                           ##
-##  Purpose: Tests notifications, data exports, etc in accordance            ##
-##           with user-specified flags & notice systems                      ##
+##  Purpose: Tests email access pipelines                                    ##
 ###############################################################################
 
 

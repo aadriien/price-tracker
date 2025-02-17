@@ -8,7 +8,7 @@
 
 import pandas as pd
 
-from src.data_utils import (
+from src.utils.data_utils import (
     csv_exists, read_purchases_prices_csv, update_purchases_csv,
     PURCHASES_FILE, PRICE_TRACKER_FILE
 )

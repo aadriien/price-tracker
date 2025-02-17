@@ -10,13 +10,12 @@ import csv
 import pandas as pd
 from datetime import datetime
 
+from src.config import (
+    TIMESTAMP_FORMAT, DATE_FORMAT, TIME_FORMAT
+)
 
 PURCHASES_FILE = "data/purchase_tracker.csv"
 PRICE_TRACKER_FILE = "data/price_tracker.csv"
-
-TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
-DATE_FORMAT = "%B %d, %Y"
-TIME_FORMAT = "%I:%M %p"
 
 
 def csv_exists(csv_file, create_header=None):

@@ -14,12 +14,13 @@ import pytz
 import base64
 import re
 
-from src.email_utils import (
+from src.config import TIMESTAMP_FORMAT
+
+from src.utils.email_utils import (
     connect_to_gmail, fetch_email_IDs, fetch_email 
 )
-from src.data_utils import (
+from src.utils.data_utils import (
     csv_exists, get_latest_date, append_to_purchases_csv,
-    TIMESTAMP_FORMAT,
     PURCHASES_FILE 
 )
 

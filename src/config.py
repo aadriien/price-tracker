@@ -28,7 +28,7 @@ def load_email_vars():
 
 
 def load_IP_vars():
-    # Load email filter parameters
+    # Load IP & port parameters
     load_dotenv()
 
     ip_env = os.getenv("IP")
@@ -38,6 +38,32 @@ def load_IP_vars():
         raise ValueError("IP and PORT must be set in .env to query site")
 
     return ip_env, port_env
+    
+
+def load_test_URL_var():
+    # Load test URL parameter
+    load_dotenv()
+
+    test_url_env = os.getenv("TEST_URL")
+
+    if not test_url_env:
+        raise ValueError("TEST_URL must be set in .env to query site")
+
+    return test_url_env
+
+
+def load_test_param_vars():
+    # Load test parameter vars
+    load_dotenv()
+
+    test_param_1_env = os.getenv("TEST_PARAM_1")
+    test_param_2_env = os.getenv("TEST_PARAM_2")
+    test_param_3_env = os.getenv("TEST_PARAM_3")
+
+    if not test_param_1_env and test_param_2_env and test_param_3_env:
+        raise ValueError("TEST_PARAMS_ 1, 2, 3 must be set in .env")
+
+    return test_param_1_env, test_param_2_env, test_param_3_env
 
 
 

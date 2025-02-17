@@ -7,12 +7,12 @@
 ###############################################################################
 
 
+import re
+import pytz
+import base64
 from xml.dom import ValidationErr
 from datetime import datetime
 from bs4 import BeautifulSoup, Comment
-import pytz
-import base64
-import re
 
 from src.config import TIMESTAMP_FORMAT
 

@@ -9,7 +9,7 @@
 import pandas as pd
 
 from src.utils.data_utils import (
-    csv_exists, read_purchases_prices_csv, update_purchases_csv,
+    csv_exists, read_purchases_prices_csv, update_price_tracker_csv,
     PURCHASES_FILE, PRICE_TRACKER_FILE
 )
 
@@ -79,7 +79,7 @@ def track_prices(new_items):
         # No existing file, so just use the new formatted data
         all_tracked = tracked_and_formatted
 
-    update_purchases_csv(all_tracked)
+    update_price_tracker_csv(all_tracked)
 
     
     

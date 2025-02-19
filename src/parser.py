@@ -20,14 +20,14 @@ from src.utils.email_utils import (
     connect_to_gmail, fetch_email_IDs, fetch_email 
 )
 from src.utils.data_utils import (
-    csv_exists, get_latest_date, append_to_purchases_csv,
-    PURCHASES_FILE 
+    csv_exists, get_latest_date, append_to_purchases_free_promo_csv,
+    PURCHASES_FILE, FREE_PROMO_FILE
 )
 
 PURCHASES_COLUMNS = ["email_id", "timestamp", "date", "time", "name", "quantity", "price", "url"]
 
 
-def get_email_date(email, timezone="America/New_York"):
+def get_email_timestamp(email, timezone="America/New_York"):
     internal_date = email.get("internalDate", None)
     if not internal_date:
         raise ValueError("Error with email timestamp")
@@ -200,13 +200,16 @@ def extract_from_plaintext(plain_body):
 
 def remove_free_promo_items(items):
     filtered_items = []
+    free_promo_items = []
 
     for item in items:
-        if item["price"] not in ("FREE", "$0.00"):
-            if "Promo" and "Free" not in item["name"]:
-                filtered_items.append(item)
+        if item["price"] in ("FREE", "$0.00"):
+            free_promo_items.append(item)
+        # Otherwise, regular purchase
+        else:
+            filtered_items.append(item)
 
-    return filtered_items
+    return filtered_items, free_promo_items
 
 
 def validate_HTML_with_plaintext(html_items, plain_items):
@@ -215,6 +218,9 @@ def validate_HTML_with_plaintext(html_items, plain_items):
     
     # Cannot compare/check URL since only HTML has it (not plaintext)
     def filter_fields(item):
+        # If promo item, then price match doesn't matter (& might look different)
+        if "Promo" in item["name"]:
+            return (item["name"], item["quantity"])
         return (item["name"], item["quantity"], item["price"]) 
 
     html_set = {filter_fields(item) for item in html_items}
@@ -223,14 +229,39 @@ def validate_HTML_with_plaintext(html_items, plain_items):
     return html_set == plain_set
 
 
+def get_items(email):
+    payload = get_email_body(email)
+    html_body, plain_body = payload["html"], payload["plain"]
+
+    # Extract details from HTML, then compare to plaintext to confirm
+    html_items = get_item_names_URLs_prices_quantities(html_body)
+    plain_items = extract_from_plaintext(plain_body)
+
+    if not validate_HTML_with_plaintext(html_items, plain_items):
+        raise ValidationErr("Error, HTML does not match plaintext")
+
+    purchases, free_promo = remove_free_promo_items(html_items)
+    return {
+        "purchases": purchases, 
+        "free_promo": free_promo
+    }
+
+
 def check_emails():
     mail = connect_to_gmail()
+    latest_purchase, latest_free_promo = "", ""
     latest_date = None
 
     # Only retrieve new emails (not yet logged)
     if csv_exists(PURCHASES_FILE, PURCHASES_COLUMNS):
-        latest_date = get_latest_date(PURCHASES_FILE)
+        latest_purchase = get_latest_date(PURCHASES_FILE)
 
+    if csv_exists(FREE_PROMO_FILE, PURCHASES_COLUMNS):
+        latest_free_promo = get_latest_date(FREE_PROMO_FILE)
+
+    if latest_purchase or latest_free_promo:
+        latest_date = max(latest_purchase, latest_free_promo)
+    
     email_IDs = fetch_email_IDs(mail, latest_date)  
 
     if email_IDs:
@@ -244,30 +275,28 @@ def parse_emails(mail, email_IDs):
         email = fetch_email(mail, ID)
 
         email_ID = email.get("id", "Unknown ID")
-        timestamp = get_email_date(email)
+        timestamp = get_email_timestamp(email)
 
-        payload = get_email_body(email)
-        html_body, plain_body = payload["html"], payload["plain"]
+        items = get_items(email)
+        
+        if items["purchases"]:
+            email_data = {
+                "id": email_ID,
+                "timestamp": timestamp,
+                "items": items["purchases"]
+            }
+            curr_items = append_to_purchases_free_promo_csv(PURCHASES_FILE, email_data)
+            new_items.extend(curr_items)
 
-        # Extract details from HTML, then compare to plaintext to confirm
-        html_items = get_item_names_URLs_prices_quantities(html_body)
-        plain_items = extract_from_plaintext(plain_body)
+        if items["free_promo"]:
+            email_data = {
+                "id": email_ID,
+                "timestamp": timestamp,
+                "items": items["free_promo"]
+            }
+            append_to_purchases_free_promo_csv(FREE_PROMO_FILE, email_data)
 
-        html_purchases = remove_free_promo_items(html_items)
-        plain_purchases = remove_free_promo_items(plain_items)
-
-        if not validate_HTML_with_plaintext(html_purchases, plain_purchases):
-            raise ValidationErr("Error, HTML does not match plaintext")
-
-        email_data = {
-            "id": email_ID,
-            "timestamp": timestamp,
-            "items": html_purchases
-        }
-        curr_items = append_to_purchases_csv(email_data)
-        new_items.extend(curr_items)
-
-    # Flag whether we have any new email items to process
+    # Flag whether any new email items to track (only names of purchased)
     return new_items   
         
 

@@ -6,12 +6,23 @@
 
 
 import os
+from datetime import datetime
 from dotenv import load_dotenv
 
 
 TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
 DATE_FORMAT = "%B %d, %Y"
 TIME_FORMAT = "%I:%M %p"
+
+
+def format_date_time(timestamp):
+    try:
+        dt = datetime.strptime(timestamp, TIMESTAMP_FORMAT)
+        formatted_date = dt.strftime(DATE_FORMAT) 
+        formatted_time = dt.strftime(TIME_FORMAT)  
+        return formatted_date, formatted_time
+    except ValueError:
+        return timestamp, timestamp
 
 
 def load_email_vars():

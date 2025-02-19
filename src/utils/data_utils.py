@@ -11,11 +11,15 @@ import pandas as pd
 from datetime import datetime
 
 from src.config import (
-    TIMESTAMP_FORMAT, DATE_FORMAT, TIME_FORMAT
+    format_date_time,
+    TIMESTAMP_FORMAT
 )
 
 PURCHASES_FILE = "data/purchase_tracker.csv"
 PRICE_TRACKER_FILE = "data/price_tracker.csv"
+
+FREE_PROMO_FILE = "data/free_promo_tracker.csv"
+
 
 
 def csv_exists(csv_file, create_header=None):
@@ -75,20 +79,11 @@ def get_latest_date(csv_file):
         return None
 
 
-def format_date_time(timestamp):
-    try:
-        dt = datetime.strptime(timestamp, TIMESTAMP_FORMAT)
-        formatted_date = dt.strftime(DATE_FORMAT) 
-        formatted_time = dt.strftime(TIME_FORMAT)  
-        return formatted_date, formatted_time
-    except ValueError:
-        return timestamp, timestamp
-
-
-def append_to_purchases_csv(data):
+def append_to_purchases_free_promo_csv(csv_file, data):
+    # Can handle purchase / free / promo items log
     item_names = []
 
-    with open(PURCHASES_FILE, mode="a", newline="") as file:
+    with open(csv_file, mode="a", newline="") as file:
         writer = csv.writer(file)
 
         email_ID = data["id"]
@@ -112,6 +107,7 @@ def append_to_purchases_csv(data):
 
 
 def read_purchases_prices_csv(csv_file, columns):
+    # Can handle any purchase/price file with timestamp
     if not csv_exists(csv_file):
         raise ValueError("Error, missing CSV file")
     if not columns:
@@ -120,7 +116,7 @@ def read_purchases_prices_csv(csv_file, columns):
     return pd.read_csv(csv_file, parse_dates=["timestamp"], usecols=columns)
 
 
-def update_purchases_csv(tracked_items):
+def update_price_tracker_csv(tracked_items):
     if tracked_items.empty:
         raise ValueError("Error, missing tracked items, cannot update")
 

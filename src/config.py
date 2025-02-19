@@ -40,16 +40,17 @@ def load_IP_vars():
     return ip_env, port_env
     
 
-def load_test_URL_var():
-    # Load test URL parameter
+def load_test_URL_vars():
+    # Load test URL & name parameters
     load_dotenv()
 
     test_url_env = os.getenv("TEST_URL")
+    test_name_env = os.getenv("TEST_NAME")
 
-    if not test_url_env:
-        raise ValueError("TEST_URL must be set in .env to query site")
+    if not test_url_env and test_name_env:
+        raise ValueError("TEST_URL and TEST_NAME must be set in .env to query site")
 
-    return test_url_env
+    return test_url_env, test_name_env
 
 
 def load_test_param_vars():

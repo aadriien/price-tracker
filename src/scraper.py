@@ -15,12 +15,12 @@ from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 
 from src.config import (
-    load_IP_vars, load_test_URL_var, load_test_param_vars,
+    load_IP_vars, load_test_URL_vars, load_test_param_vars,
     TIMESTAMP_FORMAT
 )
 
 
-def get_page_source():
+def get_page_source(url):
     ip, port = load_IP_vars()
     address = f"{ip}: {port}"
 
@@ -34,7 +34,6 @@ def get_page_source():
     driver.execute_script("window.localStorage.clear();")
     driver.execute_script("window.sessionStorage.clear();")
 
-    url = load_test_URL_var()
     driver.get(url)
 
     actions = ActionChains(driver)
@@ -46,7 +45,9 @@ def get_page_source():
 
 def validate_items():
     # Get test parameters & parse
-    page_source = get_page_source()
+    url, name = load_test_URL_vars()
+    page_source = get_page_source(url)
+
     test_param_1, test_param_2, test_param_3, test_param_4 = load_test_param_vars()
 
     pattern = re.findall(
@@ -69,9 +70,13 @@ def validate_items():
     print(f"\nCurr timestamp: {curr_timestamp}\n")
 
     for item in results:
-        print(f"{test_param_1}: {item[test_param_1]}, {test_param_2}: {item[test_param_2]}, {test_param_3}: {item[test_param_3]}, {test_param_4}: {item[test_param_4]}")
+        if item[test_param_2] == name:
+            matching_item = item
+        # print(f"{test_param_1}: {item[test_param_1]}, {test_param_2}: {item[test_param_2]}, {test_param_3}: {item[test_param_3]}, {test_param_4}: {item[test_param_4]}")
 
-    return results
+    print(f"Matching item: {matching_item}")
+
+    return curr_timestamp, matching_item
 
 
 

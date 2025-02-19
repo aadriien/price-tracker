@@ -59,11 +59,12 @@ def load_test_param_vars():
     test_param_1_env = os.getenv("TEST_PARAM_1")
     test_param_2_env = os.getenv("TEST_PARAM_2")
     test_param_3_env = os.getenv("TEST_PARAM_3")
+    test_param_4_env = os.getenv("TEST_PARAM_4")
 
-    if not test_param_1_env and test_param_2_env and test_param_3_env:
-        raise ValueError("TEST_PARAMS_ 1, 2, 3 must be set in .env")
+    if not test_param_1_env and test_param_2_env and test_param_3_env and test_param_4_env:
+        raise ValueError("TEST_PARAMS_ 1, 2, 3, 4 must be set in .env")
 
-    return test_param_1_env, test_param_2_env, test_param_3_env
+    return test_param_1_env, test_param_2_env, test_param_3_env, test_param_4_env
 
 
 

@@ -6,6 +6,7 @@
 
 
 import os
+import requests
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -23,6 +24,13 @@ def format_date_time(timestamp):
         return formatted_date, formatted_time
     except ValueError:
         return timestamp, timestamp
+
+
+def shorten_url(url):
+    # Utilize TinyURL to condense link
+    api_url = f"http://tinyurl.com/api-create.php?url={url}"
+    response = requests.get(api_url)
+    return response.text if response.status_code == 200 else None
 
 
 def load_email_vars():

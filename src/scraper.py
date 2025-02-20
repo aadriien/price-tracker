@@ -10,14 +10,39 @@
 import re
 import json
 import time
+import pandas as pd
 from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 
 from src.config import (
     load_IP_vars, load_test_URL_vars, load_test_param_vars,
-    TIMESTAMP_FORMAT
+    TIMESTAMP_FORMAT, 
 )
+
+from src.utils.data_utils import (
+    csv_exists, read_unique_items_csv, update_price_tracker_scraper_csv,
+    UNIQUE_ITEMS_FILE
+)
+
+UNIQUE_ITEMS_COLUMNS = ["name", "url"]
+
+
+def update_log(items):
+    new_items = pd.DataFrame(items)
+
+    # Integrate new items with existing
+    if csv_exists(UNIQUE_ITEMS_FILE, UNIQUE_ITEMS_COLUMNS):
+        existing_items = read_unique_items_csv()
+        all_items = pd.concat([existing_items, new_items], ignore_index=True)
+    else:
+        all_items = new_items
+
+    # Ensure unique & sort
+    unique_items = all_items.drop_duplicates(subset=["name"])
+    unique_items = unique_items.sort_values(by="name", ascending=True).reset_index(drop=True)
+
+    update_price_tracker_scraper_csv(UNIQUE_ITEMS_FILE, unique_items)
 
 
 def get_page_source(url):

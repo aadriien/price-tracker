@@ -9,7 +9,7 @@
 import pandas as pd
 
 from src.utils.data_utils import (
-    csv_exists, read_purchases_prices_csv, update_price_tracker_csv,
+    csv_exists, read_purchases_prices_csv, update_price_tracker_scraper_csv,
     PURCHASES_FILE, PRICE_TRACKER_FILE
 )
 
@@ -61,10 +61,12 @@ def calculate_price_deltas(items):
     return items
 
 
-def track_prices(new_items):
+def track_prices(items):
+    new_items = pd.DataFrame(items)
+    
     # Automatically create datetime instances from CSV for sorting
     all_purchases = read_purchases_prices_csv(PURCHASES_FILE, PURCHASES_COLUMNS_BRIEF)
-    items_to_update = all_purchases[all_purchases["name"].isin(new_items)].copy()
+    items_to_update = all_purchases[all_purchases["name"].isin(new_items["name"])].copy()
 
     tracked_items = calculate_price_deltas(items_to_update)
     tracked_and_formatted = format_price_log_for_display(tracked_items)
@@ -72,14 +74,15 @@ def track_prices(new_items):
     # If we already have price tracking data, combine updated with unchanged
     if csv_exists(PRICE_TRACKER_FILE):
         prev_tracked = read_purchases_prices_csv(PRICE_TRACKER_FILE, PURCHASES_COLUMNS_BRIEF)
-        unchanged_items = prev_tracked[~prev_tracked["name"].isin(new_items)]
+        unchanged_items = prev_tracked[~prev_tracked["name"].isin(new_items["name"])]
 
         all_tracked = pd.concat([unchanged_items, tracked_and_formatted], ignore_index=True)
     else:
         # No existing file, so just use the new formatted data
         all_tracked = tracked_and_formatted
 
-    update_price_tracker_csv(all_tracked)
+    all_tracked = all_tracked.sort_values(by=["name", "timestamp"], ascending=[True, False]).reset_index(drop=True)
+    update_price_tracker_scraper_csv(PRICE_TRACKER_FILE, all_tracked)
 
     
     

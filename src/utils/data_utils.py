@@ -11,15 +11,17 @@ import pandas as pd
 from datetime import datetime
 
 from src.config import (
-    format_date_time,
+    format_date_time, shorten_url,
     TIMESTAMP_FORMAT
 )
 
-PURCHASES_FILE = "data/purchase_tracker.csv"
-PRICE_TRACKER_FILE = "data/price_tracker.csv"
+UNIQUE_ITEMS_FILE = "data/unique_items.csv"
 
+PURCHASES_FILE = "data/purchase_tracker.csv"
 FREE_PROMO_FILE = "data/free_promo_tracker.csv"
 
+PRICE_TRACKER_FILE = "data/price_tracker.csv"
+PRICE_SCRAPER_FILE = "data/price_scraper.csv"
 
 
 def csv_exists(csv_file, create_header=None):
@@ -81,7 +83,7 @@ def get_latest_date(csv_file):
 
 def append_to_purchases_free_promo_csv(csv_file, data):
     # Can handle purchase / free / promo items log
-    item_names = []
+    item_names_urls = []
 
     with open(csv_file, mode="a", newline="") as file:
         writer = csv.writer(file)
@@ -97,13 +99,16 @@ def append_to_purchases_free_promo_csv(csv_file, data):
             price = item["price"]
             quantity = item["quantity"]
             
-            row = [email_ID, timestamp, date, time, name, quantity, price, url]
+            row = [email_ID, timestamp, date, time, name, quantity, price, shorten_url(url)]
             writer.writerow(row)
 
-            item_names.append(name)
+            item_names_urls.append({
+                "name": name, 
+                "url": shorten_url(url) # Can adjust long vs short URL return
+            })
 
     # Return the new products we've just added
-    return item_names
+    return item_names_urls
 
 
 def read_purchases_prices_csv(csv_file, columns):
@@ -116,12 +121,18 @@ def read_purchases_prices_csv(csv_file, columns):
     return pd.read_csv(csv_file, parse_dates=["timestamp"], usecols=columns)
 
 
-def update_price_tracker_csv(tracked_items):
-    if tracked_items.empty:
+def read_unique_items_csv():
+    if not csv_exists(UNIQUE_ITEMS_FILE):
+        raise ValueError("Error, missing CSV file")
+
+    return pd.read_csv(UNIQUE_ITEMS_FILE)
+
+
+def update_price_tracker_scraper_csv(csv_file, sorted_items):
+    if sorted_items.empty:
         raise ValueError("Error, missing tracked items, cannot update")
 
-    tracked_items = tracked_items.sort_values(by=["name", "timestamp"], ascending=[True, False])
-    tracked_items.to_csv(PRICE_TRACKER_FILE, index=False)
+    sorted_items.to_csv(csv_file, index=False)
 
 
 

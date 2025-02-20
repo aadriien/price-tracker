@@ -296,7 +296,7 @@ def parse_emails(mail, email_IDs):
             }
             append_to_purchases_free_promo_csv(FREE_PROMO_FILE, email_data)
 
-    # Flag whether any new email items to track (only names of purchased)
+    # Flag whether any new email items to track 
     return new_items   
         
 

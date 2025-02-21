@@ -6,7 +6,10 @@
 
 
 import os
+import sys
+import time
 import requests
+import subprocess
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -85,6 +88,31 @@ def load_test_param_vars():
         raise ValueError("TEST_PARAMS_ 1, 2, 3, 4 must be set in .env")
 
     return test_param_1_env, test_param_2_env, test_param_3_env, test_param_4_env
+
+
+def launch_chrome():
+    # Launch Chrome as independent process 
+    subprocess.Popen([
+        # -g flag to open in background (specific to macOS)
+        "open", "-g", "-a", "Google Chrome", 
+        "--args",
+        "--remote-debugging-port=9222",
+        "--user-data-dir=/tmp/chrome-debug",
+        "--disable-gpu",
+        "--disable-software-rasterizer",
+        "--disable-background-networking",
+        "--no-default-browser-check",
+        "--disable-logging",
+        "--log-level=3"
+    ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)  
+
+    time.sleep(5)
+
+
+def close_chrome():
+    # Close Chrome after task finished (specific to macOS)
+    if sys.platform == "darwin":
+        subprocess.call(["pkill", "Google Chrome"])
 
 
 

@@ -16,7 +16,7 @@ from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 
 from src.config import (
-    load_IP_vars, load_test_URL_vars, load_test_param_vars,
+    load_IP_vars, load_test_URL_vars, load_test_param_vars, launch_chrome, close_chrome,
     TIMESTAMP_FORMAT, 
 )
 
@@ -46,9 +46,13 @@ def update_log(items):
 
 
 def get_page_source(url):
+    # Launch Chrome instance before pinging URL
+    launch_chrome()
+
     ip, port = load_IP_vars()
     address = f"{ip}: {port}"
 
+    # Now set up web driver
     options = webdriver.ChromeOptions()
     options.add_experimental_option("debuggerAddress", address)
     options.add_argument("--disable-webrtc")
@@ -73,6 +77,9 @@ def validate_items():
     url, name = load_test_URL_vars()
     page_source = get_page_source(url)
 
+    # Close Chrome instance after pinging URL & retrieving page source
+    close_chrome()
+
     test_param_1, test_param_2, test_param_3, test_param_4 = load_test_param_vars()
 
     pattern = re.findall(
@@ -93,6 +100,8 @@ def validate_items():
 
     curr_timestamp = datetime.now().strftime(TIMESTAMP_FORMAT)
     print(f"\nCurr timestamp: {curr_timestamp}\n")
+
+    matching_item = None
 
     for item in results:
         if item[test_param_2] == name:

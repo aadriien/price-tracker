@@ -55,10 +55,10 @@ def get_page_source(url):
     options.add_argument("--disable-webrtc")
 
     driver = webdriver.Chrome(options=options)
-    driver.execute_script("window.localStorage.clear();")
-    driver.execute_script("window.sessionStorage.clear();")
-
     driver.get(url)
+
+    # Refresh / clean out everything
+    clear_cache_and_hard_reload(driver)
 
     driver.execute_script("document.body.style.zoom='100%'") 
     time.sleep(2)
@@ -103,9 +103,11 @@ def scrape_page(name, url):
     # print(f"Matching item: {matching_item}")
 
     if matching_item == None:
-        print(page_source)
-        print("\n\n")
-        print(name)
+        for item in results:
+            print (item)
+        # print(page_source)
+        # print("\n\n")
+        # print(name)
         raise ValueError()
 
     return curr_timestamp, matching_item
@@ -121,12 +123,12 @@ def ping_urls():
     items = read_unique_items_csv()
 
     for _, row in items.iterrows():
-        # print(row["name"], row["url"])
+        print(row["name"], row["url"])
 
         timestamp, res = scrape_page(row["name"], row["url"])
 
         # print(f"\nTimestamp: {timestamp}")
-        # print(f"Item: {res}\n")
+        print(f"Item: {res}\n")
 
     # Close Chrome instance after pinging URLs & retrieving page sources
     close_chrome()

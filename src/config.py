@@ -119,9 +119,9 @@ def clear_cache_and_hard_reload(driver):
     driver.execute_script("window.localStorage.clear();")
     driver.execute_script("window.sessionStorage.clear();")
 
-    driver.delete_all_cookies()
+    # driver.delete_all_cookies()
 
-    # Hard reload page
-    driver.execute_script("location.reload(true);")  
-    time.sleep(3)
+    # # Hard reload page
+    # driver.execute_script("location.reload(true);")  
+    # time.sleep(3)
 

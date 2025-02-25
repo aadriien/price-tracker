@@ -16,7 +16,7 @@ from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 
 from src.config import (
-    load_IP_vars, load_test_URL_vars, load_test_param_vars, launch_chrome, close_chrome,
+    load_IP_vars, load_test_URL_vars, load_test_param_vars, launch_chrome, close_chrome, clear_cache_and_hard_reload,
     TIMESTAMP_FORMAT, 
 )
 
@@ -46,9 +46,6 @@ def update_log(items):
 
 
 def get_page_source(url):
-    # Launch Chrome instance before pinging URL
-    launch_chrome()
-
     ip, port = load_IP_vars()
     address = f"{ip}: {port}"
 
@@ -56,14 +53,15 @@ def get_page_source(url):
     options = webdriver.ChromeOptions()
     options.add_experimental_option("debuggerAddress", address)
     options.add_argument("--disable-webrtc")
-    options.add_argument("--incognito") 
 
     driver = webdriver.Chrome(options=options)
-
     driver.execute_script("window.localStorage.clear();")
     driver.execute_script("window.sessionStorage.clear();")
 
     driver.get(url)
+
+    driver.execute_script("document.body.style.zoom='100%'") 
+    time.sleep(2)
 
     actions = ActionChains(driver)
     actions.move_by_offset(100, 100).perform()
@@ -72,34 +70,28 @@ def get_page_source(url):
     return driver.page_source
 
 
-def validate_items():
-    # Get test parameters & parse
-    url, name = load_test_URL_vars()
+def scrape_page(name, url):
     page_source = get_page_source(url)
 
-    # Close Chrome instance after pinging URL & retrieving page source
-    close_chrome()
+    _, test_param_2, test_param_3, _ = load_test_param_vars()
 
-    test_param_1, test_param_2, test_param_3, test_param_4 = load_test_param_vars()
-
-    pattern = re.findall(
-        rf'"value":"(\d+) {test_param_1}".*?"{test_param_2}":"(.*?)".*?"{test_param_3}":"(\$[\d.]+)".*?"{test_param_4}":"(\$[\d.]+)"',
-        page_source
-    )
+    pattern = rf'"__typename":"Item".*?"{test_param_2}":"(.*?)".*?"{test_param_3}":"(\$[\d.]+)"'
+    # patternOld = rf'"value":"(\d+) {test_param_1}".*?"{test_param_2}":"(.*?)".*?"{test_param_3}":"(\$[\d.]+)".*?"{test_param_4}":"(\$[\d.]+)"'
+    matches = re.findall(pattern, page_source)
     
     # Convert results into structured list of dicts
     results = [
         {
-            test_param_1: param_1,
+            # test_param_1: param_1,
             test_param_2: json.loads(f'"{param_2}"'),  # Decode special chars
             test_param_3: param_3,
-            test_param_4: param_4
+            # test_param_4: param_4
         }
-        for param_1, param_2, param_3, param_4 in pattern
+        # for param_1, param_2, param_3, param_4 in matches
+        for param_2, param_3 in matches
     ]
 
     curr_timestamp = datetime.now().strftime(TIMESTAMP_FORMAT)
-    print(f"\nCurr timestamp: {curr_timestamp}\n")
 
     matching_item = None
 
@@ -108,10 +100,36 @@ def validate_items():
             matching_item = item
         # print(f"{test_param_1}: {item[test_param_1]}, {test_param_2}: {item[test_param_2]}, {test_param_3}: {item[test_param_3]}, {test_param_4}: {item[test_param_4]}")
 
-    print(f"Matching item: {matching_item}")
+    # print(f"Matching item: {matching_item}")
+
+    if matching_item == None:
+        print(page_source)
+        print("\n\n")
+        print(name)
+        raise ValueError()
 
     return curr_timestamp, matching_item
 
+
+def ping_urls():
+    # Launch Chrome instance before pinging URL
+    launch_chrome()
+
+    # url, name = load_test_URL_vars()
+    # scrape_page(name, url)
+
+    items = read_unique_items_csv()
+
+    for _, row in items.iterrows():
+        # print(row["name"], row["url"])
+
+        timestamp, res = scrape_page(row["name"], row["url"])
+
+        # print(f"\nTimestamp: {timestamp}")
+        # print(f"Item: {res}\n")
+
+    # Close Chrome instance after pinging URLs & retrieving page sources
+    close_chrome()
 
 
 

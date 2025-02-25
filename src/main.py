@@ -7,16 +7,16 @@
 
 from src.parser import check_emails # Message / text parsing logic
 from src.tracker import track_prices # Price trend analysis logic
-from src.scraper import update_log, validate_items # Web scraping logic
+from src.scraper import update_log, ping_urls # Web scraping logic
 
 
 def main():
-    new_items = check_emails()
-    if new_items:
-        update_log(new_items)
-        track_prices(new_items)
-        
-    validate_items()
+    # new_items = check_emails()
+    # if new_items:
+    #     update_log(new_items)
+    #     track_prices(new_items)
+
+    ping_urls()
 
     
 

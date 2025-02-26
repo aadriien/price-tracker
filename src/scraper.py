@@ -11,6 +11,7 @@ import re
 import json
 import time
 import pandas as pd
+from rapidfuzz import fuzz
 from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
@@ -70,7 +71,7 @@ def get_page_source(url):
     return driver.page_source
 
 
-def scrape_page(name, url):
+def scrape_page(url):
     page_source = get_page_source(url)
 
     _, test_param_2, test_param_3, _ = load_test_param_vars()
@@ -93,42 +94,39 @@ def scrape_page(name, url):
 
     curr_timestamp = datetime.now().strftime(TIMESTAMP_FORMAT)
 
+    return curr_timestamp, results
+
+
+def find_match(potential_matches, name):
     matching_item = None
+    max_match_score = 0
 
-    for item in results:
-        if item[test_param_2] == name:
+    for item in potential_matches:
+        # Scores 0-100 based on text match (e.g. 85% logical similarity, 90%, etc)
+        similarity_score = fuzz.ratio(item["name"], name)  
+
+        if similarity_score > max_match_score:
             matching_item = item
-        # print(f"{test_param_1}: {item[test_param_1]}, {test_param_2}: {item[test_param_2]}, {test_param_3}: {item[test_param_3]}, {test_param_4}: {item[test_param_4]}")
+            max_match_score = similarity_score
 
-    # print(f"Matching item: {matching_item}")
+    return matching_item
 
-    if matching_item == None:
-        for item in results:
-            print (item)
-        # print(page_source)
-        # print("\n\n")
-        # print(name)
-        raise ValueError()
-
-    return curr_timestamp, matching_item
 
 
 def ping_urls():
     # Launch Chrome instance before pinging URL
     launch_chrome()
-
-    # url, name = load_test_URL_vars()
-    # scrape_page(name, url)
-
+    
     items = read_unique_items_csv()
 
     for _, row in items.iterrows():
         print(row["name"], row["url"])
 
-        timestamp, res = scrape_page(row["name"], row["url"])
+        timestamp, results = scrape_page(row["url"])
+        matching_item = find_match(results, row["name"])
 
         # print(f"\nTimestamp: {timestamp}")
-        print(f"Item: {res}\n")
+        print(f"Item: {matching_item}\n")
 
     # Close Chrome instance after pinging URLs & retrieving page sources
     close_chrome()

@@ -23,7 +23,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from src.tracker import calculate_price_deltas
 
 from src.config import (
-    load_IP_vars, load_test_URL_vars, load_test_param_vars, launch_chrome, close_chrome, clear_cache_and_hard_reload,
+    load_IP_vars, load_test_param_vars, launch_chrome, close_chrome, clear_cache_and_hard_reload,
     TIMESTAMP_FORMAT, 
 )
 
@@ -71,16 +71,20 @@ def track_scraped(items):
 
 
 def get_page_source(url):
-    ip, port = load_IP_vars()
+    ip, port, main_url = load_IP_vars()
     address = f"{ip}:{port}"
 
     # Now set up web driver
     options = webdriver.ChromeOptions()
     options.add_experimental_option("debuggerAddress", address)
-    options.add_argument("--disable-blink-features=AutomationControlled")
-    options.add_argument("--disable-webrtc")
 
     driver = webdriver.Chrome(options=options)
+
+    # 30% of the time, switch things up
+    if random.random() < 0.3:  
+        driver.get(main_url)
+        time.sleep(random.uniform(1.5, 4.5))
+
     driver.get(url)
 
     # Refresh / clean out everything
@@ -93,7 +97,10 @@ def get_page_source(url):
     actions.move_by_offset(100, 100).perform()
     time.sleep(random.uniform(1, 3))
 
-    return driver.page_source
+    page_source = driver.page_source
+    driver.quit()
+
+    return page_source
 
 
 def scrape_page(url):
@@ -101,18 +108,14 @@ def scrape_page(url):
     _, test_param_2, test_param_3, _ = load_test_param_vars()
 
     pattern = rf'"__typename":"Item".*?"{test_param_2}":"(.*?)".*?"{test_param_3}":"(\$[\d.]+)"'
-    # patternOld = rf'"value":"(\d+) {test_param_1}".*?"{test_param_2}":"(.*?)".*?"{test_param_3}":"(\$[\d.]+)".*?"{test_param_4}":"(\$[\d.]+)"'
     matches = re.findall(pattern, page_source)
     
     # Convert results into structured list of dicts
     results = [
         {
-            # test_param_1: param_1,
             test_param_2: json.loads(f'"{param_2}"'),  # Decode special chars
             test_param_3: param_3,
-            # test_param_4: param_4
         }
-        # for param_1, param_2, param_3, param_4 in matches
         for param_2, param_3 in matches
     ]
 
@@ -138,7 +141,7 @@ def find_match(potential_matches, name):
 
 def ping_url(row):
     name, url = row["name"], row["url"]
-    _, test_param_2, test_param_3, _ = load_test_param_vars()
+    _, _, test_param_3, _ = load_test_param_vars()
 
     timestamp, results = scrape_page(url)
     matching_item = find_match(results, name)
@@ -146,9 +149,6 @@ def ping_url(row):
     if not matching_item:
         print(f"Skipping {name}: No matching item found.")
         return None
-
-    # print(f"\nTimestamp: {timestamp}")
-    # print(f"\nItem: {matching_item}")
 
     return {
         "timestamp": timestamp,
@@ -158,41 +158,7 @@ def ping_url(row):
     }
 
 
-# def ping_urls():
-#     # Launch Chrome instance before pinging URL
-#     launch_chrome()
-
-#     # test_url, test_name = load_test_URL_vars()
-#     # # proxy_url = "https://cors-anywhere.herokuapp.com/"
-#     # # test_url = proxy_url + test_url
-
-#     # timestamp, results = scrape_page(test_url)
-#     # matching_item = find_match(results, test_url)
-
-#     # # close_chrome()
-
-#     # return
-    
-#     items = read_unique_items_csv()
-
-#     for _, row in items.iterrows():
-#         print(row["name"], row["url"])
-
-#         timestamp, results = scrape_page(row["url"])
-#         matching_item = find_match(results, row["name"])
-
-#         # print(f"\nTimestamp: {timestamp}")
-#         print(f"Item: {matching_item}\n")
-#         return
-
-#     # Close Chrome instance after pinging URLs & retrieving page sources
-#     close_chrome()
-
-
 def scrape():
-    # ping_urls()
-
-
     items_df = read_unique_items_csv()
     items_list = items_df.to_dict(orient="records")
 
@@ -203,9 +169,8 @@ def scrape():
     for row in items_list:
         latest_batch.append(ping_url(row))
 
-    # Close Chrome instance after pinging URLs & retrieving page sources
+    # Close Chrome instance & run calculations for batch
     close_chrome()
-
     track_scraped(latest_batch)
 
 

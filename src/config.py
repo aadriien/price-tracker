@@ -55,11 +55,12 @@ def load_IP_vars():
 
     ip_env = os.getenv("IP")
     port_env = os.getenv("PORT")
+    main_url_env = os.getenv("MAIN_URL")
 
-    if not ip_env and port_env:
-        raise ValueError("IP and PORT must be set in .env to query site")
+    if not ip_env and port_env and main_url_env:
+        raise ValueError("IP, PORT, MAIN_URL must be set in .env to query site")
 
-    return ip_env, port_env
+    return ip_env, port_env, main_url_env
     
 
 def load_test_URL_vars():
@@ -97,11 +98,12 @@ def launch_chrome():
         "open", "-g", "-a", "Google Chrome", 
         "--args",
         "--remote-debugging-port=9222",
-        "--user-data-dir=/tmp/chrome-debug-new",
+        "--user-data-dir=/tmp/chrome-debug-new1",
         "--disable-gpu",
-        "--disable-web-security",
+        "--disable-webrtc",
         "--disable-software-rasterizer",
         "--disable-background-networking",
+        "--disable-blink-features=AutomationControlled",
         "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
         "--no-default-browser-check",
         "--disable-logging",
@@ -122,9 +124,4 @@ def clear_cache_and_hard_reload(driver):
     driver.execute_script("window.localStorage.clear();")
     driver.execute_script("window.sessionStorage.clear();")
 
-    # driver.delete_all_cookies()
-
-    # # Hard reload page
-    # driver.execute_script("location.reload(true);")  
-    # time.sleep(3)
 

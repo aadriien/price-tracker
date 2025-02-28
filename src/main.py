@@ -11,10 +11,10 @@ from src.scraper import update_log, scrape # Web scraping logic
 
 
 def main():
-    # new_items = check_emails()
-    # if new_items:
-    #     update_log(new_items)
-    #     track_prices(new_items)
+    new_items = check_emails()
+    if new_items:
+        update_log(new_items)
+        track_prices(new_items)
 
     scrape()
 

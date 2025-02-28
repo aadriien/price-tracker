@@ -58,7 +58,7 @@ def calculate_price_deltas(items):
     )
     items["diff_from_avg"] = items["price"] - items["avg_price"] 
     
-    return items
+    return format_price_log_for_display(items)
 
 
 def track_prices(items):
@@ -68,8 +68,7 @@ def track_prices(items):
     all_purchases = read_purchases_prices_csv(PURCHASES_FILE, PURCHASES_COLUMNS_BRIEF)
     items_to_update = all_purchases[all_purchases["name"].isin(new_items["name"])].copy()
 
-    tracked_items = calculate_price_deltas(items_to_update)
-    tracked_and_formatted = format_price_log_for_display(tracked_items)
+    tracked_and_formatted = calculate_price_deltas(items_to_update)
 
     # If we already have price tracking data, combine updated with unchanged
     if csv_exists(PRICE_TRACKER_FILE):

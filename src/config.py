@@ -97,10 +97,12 @@ def launch_chrome():
         "open", "-g", "-a", "Google Chrome", 
         "--args",
         "--remote-debugging-port=9222",
-        "--user-data-dir=/tmp/chrome-debug",
+        "--user-data-dir=/tmp/chrome-debug-new",
         "--disable-gpu",
+        "--disable-web-security",
         "--disable-software-rasterizer",
         "--disable-background-networking",
+        "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
         "--no-default-browser-check",
         "--disable-logging",
         "--log-level=3"
@@ -113,6 +115,7 @@ def close_chrome():
     # Close Chrome after task finished (specific to macOS)
     if sys.platform == "darwin":
         subprocess.call(["pkill", "Google Chrome"])
+        subprocess.call(["pkill", "chromedriver"])
 
 
 def clear_cache_and_hard_reload(driver):

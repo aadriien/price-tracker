@@ -27,7 +27,7 @@ Ever wonder if that “deal” was actually a deal? `price-tracker` is a tool th
 
 ```sh
 # Clone the repository
-git clone https://github.com/yourusername/price-tracker.git
+git clone https://github.com/aadriien/price-tracker.git
 
 # Navigate to the project directory
 cd price-tracker

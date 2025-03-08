@@ -271,7 +271,8 @@ def check_emails():
 def parse_emails(mail, email_IDs):
     new_items = []
 
-    for ID in email_IDs:
+    # Read & append emails from oldest to newest
+    for ID in email_IDs[::-1]:
         email = fetch_email(mail, ID)
 
         email_ID = email.get("id", "Unknown ID")

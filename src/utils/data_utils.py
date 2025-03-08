@@ -84,6 +84,7 @@ def get_latest_date(csv_file):
 def append_to_purchases_free_promo_csv(csv_file, data):
     # Can handle purchase / free / promo items log
     item_names_urls = []
+    file_df = pd.read_csv(csv_file)
 
     with open(csv_file, mode="a", newline="") as file:
         writer = csv.writer(file)
@@ -100,7 +101,8 @@ def append_to_purchases_free_promo_csv(csv_file, data):
             quantity = item["quantity"]
             
             row = [email_ID, timestamp, date, time, name, quantity, price, shorten_url(url)]
-            writer.writerow(row)
+            if row not in file_df.values.tolist():
+                writer.writerow(row)
 
             item_names_urls.append({
                 "name": name, 

@@ -16,7 +16,7 @@ def main():
         update_log(new_items)
         track_prices(new_items)
 
-    scrape()
+    # scrape()
 
     
 

@@ -90,11 +90,15 @@ def format_date_for_gmail(date_str):
 # Fetch emails based on criteria
 def fetch_email_IDs(mail, since_date=None):
     FROM, SUBJECT = load_email_vars()
-    search_criteria = f'(FROM "{FROM}" subject:{SUBJECT})'
+    search_criteria = f'from:{FROM} subject:"{SUBJECT}"'
 
     if since_date:
         formatted_date = format_date_for_gmail(since_date)
-        search_criteria += f' SINCE {formatted_date}'
+        search_criteria += f' after:{formatted_date}'
+
+    # before_date = format_date_for_gmail("2025-02-01 01:01:01")
+    # search_criteria += f' before:{before_date}'
+    # print(search_criteria)
 
     results = mail.users().messages().list(userId="me", q=search_criteria).execute()
     
@@ -109,10 +113,10 @@ def fetch_email_IDs(mail, since_date=None):
             break
 
     if not email_IDs:
-        print(f"No emails found since date/time: {since_date}")
+        print(f"No emails found since date: {since_date}")
         return []
 
-    print(f"Found {len(email_IDs)} emails since date/time: {since_date}")
+    print(f"Found {len(email_IDs)} email(s) since date: {since_date}")
     return [email["id"] for email in email_IDs]
 
 

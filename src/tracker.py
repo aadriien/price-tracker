@@ -7,6 +7,7 @@
 
 
 import pandas as pd
+import numpy as np
 
 from src.utils.data_utils import (
     csv_exists, read_purchases_prices_csv, update_price_tracker_scraper_csv,
@@ -15,6 +16,7 @@ from src.utils.data_utils import (
 
 PURCHASES_COLUMNS_BRIEF = ["timestamp", "name", "quantity", "price"]
 PRICES_COLUMNS_ANALYSIS = ["price", "prev_price", "price_change", "percent_change", "avg_price", "diff_from_avg"]
+TRACKER_COLUMNS_FULL = ["timestamp", "name", "quantity", "price", "prev_price", "price_change", "percent_change", "avg_price", "diff_from_avg"]
 
 
 def format_price(price):
@@ -45,6 +47,8 @@ def calculate_price_deltas(items):
     items["price"] = items["price"].replace(r"[\$,]", "", regex=True).astype(float)
 
     items["prev_price"] = items.groupby("name")["price"].shift(1) 
+    items["prev_price"] = items["prev_price"].fillna(np.nan)
+
     items["price_change"] = items["price"] - items["prev_price"] 
     items["percent_change"] = (items["price_change"] / items["prev_price"]) * 100
 
@@ -72,7 +76,7 @@ def track_prices(items):
 
     # If we already have price tracking data, combine updated with unchanged
     if csv_exists(PRICE_TRACKER_FILE):
-        prev_tracked = read_purchases_prices_csv(PRICE_TRACKER_FILE, PURCHASES_COLUMNS_BRIEF)
+        prev_tracked = read_purchases_prices_csv(PRICE_TRACKER_FILE, TRACKER_COLUMNS_FULL)
         unchanged_items = prev_tracked[~prev_tracked["name"].isin(new_items["name"])]
 
         all_tracked = pd.concat([unchanged_items, tracked_and_formatted], ignore_index=True)

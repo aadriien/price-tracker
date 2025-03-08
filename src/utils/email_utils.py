@@ -96,7 +96,7 @@ def fetch_email_IDs(mail, since_date=None):
         formatted_date = format_date_for_gmail(since_date)
         search_criteria += f' after:{formatted_date}'
 
-    # before_date = format_date_for_gmail("2025-02-01 01:01:01")
+    # before_date = format_date_for_gmail("2025-02-25 01:01:01")
     # search_criteria += f' before:{before_date}'
     # print(search_criteria)
 

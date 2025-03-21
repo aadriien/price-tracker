@@ -24,11 +24,11 @@ from src.tracker import calculate_price_deltas
 
 from src.config import (
     load_IP_vars, load_test_param_vars, launch_chrome, close_chrome, clear_cache_and_hard_reload,
-    TIMESTAMP_FORMAT, 
+    TIMESTAMP_FORMAT, TIMESTAMP_DATE_FORMAT,
 )
 
 from src.utils.data_utils import (
-    csv_exists, read_purchases_prices_csv, read_unique_items_csv, update_price_tracker_scraper_csv,
+    csv_exists, make_dir, read_purchases_prices_csv, read_unique_items_csv, update_price_tracker_scraper_csv,
     UNIQUE_ITEMS_FILE, PRICE_SCRAPER_FILE
 )
 
@@ -56,18 +56,29 @@ def update_log(items):
 def track_scraped(items):
     new_scraped = pd.DataFrame(items)
 
-    # If we already have scraped data, combine updated with unchanged
-    if csv_exists(PRICE_SCRAPER_FILE):
-        prev_scraped = read_purchases_prices_csv(PRICE_SCRAPER_FILE, SCRAPED_COLUMNS_BRIEF)
-        all_scraped = pd.concat([prev_scraped, new_scraped], ignore_index=True)
-    else:
-        # No existing file, so just use the new formatted data
-        all_scraped = new_scraped
+    # # If we already have scraped data, combine updated with unchanged
+    # if csv_exists(PRICE_SCRAPER_FILE):
+    #     prev_scraped = read_purchases_prices_csv(PRICE_SCRAPER_FILE, SCRAPED_COLUMNS_BRIEF)
+    #     all_scraped = pd.concat([prev_scraped, new_scraped], ignore_index=True)
+    # else:
+    #     # No existing file, so just use the new formatted data
+    #     all_scraped = new_scraped
 
-    tracked_and_formatted = calculate_price_deltas(all_scraped)
+    # tracked_and_formatted = calculate_price_deltas(all_scraped)
 
-    tracked_and_formatted = tracked_and_formatted.sort_values(by=["name", "timestamp"], ascending=[True, False]).reset_index(drop=True)
-    update_price_tracker_scraper_csv(PRICE_SCRAPER_FILE, tracked_and_formatted)
+    # tracked_and_formatted = tracked_and_formatted.sort_values(by=["name", "timestamp"], ascending=[True, False]).reset_index(drop=True)
+    # update_price_tracker_scraper_csv(PRICE_SCRAPER_FILE, tracked_and_formatted)
+
+
+    # Do the same thing, but export to its own CSV (& don't bother with deltas)
+    curr_date_timestamp = datetime.now().strftime(TIMESTAMP_DATE_FORMAT)
+    PRICE_SCRAPER_FILE_DATED = f"data/scraped/scraper_{curr_date_timestamp}.csv"
+
+    # If folder doesn't exist, then create it
+    make_dir(PRICE_SCRAPER_FILE_DATED)
+
+    new_scraped_formatted = new_scraped.sort_values(by=["name", "timestamp"], ascending=[True, False]).reset_index(drop=True)
+    update_price_tracker_scraper_csv(PRICE_SCRAPER_FILE_DATED, new_scraped_formatted)
 
 
 def get_page_source(url):

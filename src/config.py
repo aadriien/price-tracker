@@ -15,6 +15,8 @@ from dotenv import load_dotenv
 
 
 TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
+TIMESTAMP_DATE_FORMAT = "%m-%d-%Y"
+
 DATE_FORMAT = "%B %d, %Y"
 TIME_FORMAT = "%I:%M %p"
 

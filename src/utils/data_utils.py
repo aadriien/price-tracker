@@ -15,7 +15,7 @@ from src.config import (
     TIMESTAMP_FORMAT
 )
 
-UNIQUE_ITEMS_FILE = "data/unique_items.csv"
+UNIQUE_ITEMS_FILE = "data/unique_items-TEST.csv"
 
 PURCHASES_FILE = "data/purchase_tracker.csv"
 FREE_PROMO_FILE = "data/free_promo_tracker.csv"
@@ -40,6 +40,17 @@ def csv_exists(csv_file, create_header=None):
         create_csv(csv_file, create_header)
     
     return False
+
+
+def make_dir(csv_file_path):
+    if not csv_file_path:
+        raise ValueError("Error, missing CSV file path")
+
+    folder = os.path.dirname(csv_file_path)  
+    
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    return
 
 
 def create_csv(csv_file, header):

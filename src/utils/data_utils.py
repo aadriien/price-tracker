@@ -11,17 +11,17 @@ import pandas as pd
 from datetime import datetime
 
 from src.config import (
-    format_date_time, shorten_url,
+    format_date_time, shorten_url, add_path_prefix,
     TIMESTAMP_FORMAT
 )
 
-UNIQUE_ITEMS_FILE = "data/unique_items-TEST.csv"
+UNIQUE_ITEMS_FILE = add_path_prefix("data/unique_items-TEST.csv")
 
-PURCHASES_FILE = "data/purchase_tracker.csv"
-FREE_PROMO_FILE = "data/free_promo_tracker.csv"
+PURCHASES_FILE = add_path_prefix("data/purchase_tracker.csv")
+FREE_PROMO_FILE = add_path_prefix("data/free_promo_tracker.csv")
 
-PRICE_TRACKER_FILE = "data/price_tracker.csv"
-PRICE_SCRAPER_FILE = "data/price_scraper.csv"
+PRICE_TRACKER_FILE = add_path_prefix("data/price_tracker.csv")
+PRICE_SCRAPER_FILE = add_path_prefix("data/price_scraper.csv")
 
 
 def csv_exists(csv_file, create_header=None):

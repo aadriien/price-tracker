@@ -16,12 +16,14 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 from src.utils.data_utils import TIMESTAMP_FORMAT
-from src.config import load_email_vars
+from src.config import (
+    load_email_vars, add_path_prefix,
+)
 
 
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
-TOKEN_FILE = "secrets/token.json"
-CREDENTIALS_FILE = "secrets/client_secret_gmail.json"
+TOKEN_FILE = add_path_prefix("secrets/token.json")
+CREDENTIALS_FILE = add_path_prefix("secrets/client_secret_gmail.json")
 
 GMAIL_TIMESTAMP_FORMAT = "%Y/%m/%d"
 

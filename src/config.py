@@ -93,6 +93,26 @@ def load_test_param_vars():
     return test_param_1_env, test_param_2_env, test_param_3_env, test_param_4_env
 
 
+def load_absolute_path_prefix():
+    # Load absolute path for cron job
+    load_dotenv()
+
+    absolute_path_env = os.getenv("ABSOLUTE_PATH_PREFIX")
+
+    if not absolute_path_env:
+        raise ValueError("ABSOLUTE_PATH_PREFIX must be set in .env")
+
+    return absolute_path_env
+
+
+def add_path_prefix(specific_file_path):
+    if not specific_file_path:
+        raise ValueError("Error, missing specific file path")
+
+    path_prefix = load_absolute_path_prefix()
+    return os.path.join(path_prefix, specific_file_path).rstrip("/")
+
+
 def launch_chrome():
     # Launch Chrome as independent process 
     subprocess.Popen([

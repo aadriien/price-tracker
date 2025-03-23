@@ -23,7 +23,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from src.tracker import calculate_price_deltas
 
 from src.config import (
-    load_IP_vars, load_test_param_vars, launch_chrome, close_chrome, clear_cache_and_hard_reload,
+    load_IP_vars, load_test_param_vars, add_path_prefix, launch_chrome, close_chrome, clear_cache_and_hard_reload,
     TIMESTAMP_FORMAT, TIMESTAMP_DATE_FORMAT,
 )
 
@@ -72,7 +72,7 @@ def track_scraped(items):
 
     # Do the same thing, but export to its own CSV (& don't bother with deltas)
     curr_date_timestamp = datetime.now().strftime(TIMESTAMP_DATE_FORMAT)
-    PRICE_SCRAPER_FILE_DATED = f"data/scraped/scraper_{curr_date_timestamp}.csv"
+    PRICE_SCRAPER_FILE_DATED = add_path_prefix(f"data/scraped/scraper_{curr_date_timestamp}.csv")
 
     # If folder doesn't exist, then create it
     make_dir(PRICE_SCRAPER_FILE_DATED)

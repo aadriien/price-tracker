@@ -56,18 +56,18 @@ def update_log(items):
 def track_scraped(items):
     new_scraped = pd.DataFrame(items)
 
-    # # If we already have scraped data, combine updated with unchanged
-    # if csv_exists(PRICE_SCRAPER_FILE):
-    #     prev_scraped = read_purchases_prices_csv(PRICE_SCRAPER_FILE, SCRAPED_COLUMNS_BRIEF)
-    #     all_scraped = pd.concat([prev_scraped, new_scraped], ignore_index=True)
-    # else:
-    #     # No existing file, so just use the new formatted data
-    #     all_scraped = new_scraped
+    # If we already have scraped data, combine updated with unchanged
+    if csv_exists(PRICE_SCRAPER_FILE):
+        prev_scraped = read_purchases_prices_csv(PRICE_SCRAPER_FILE, SCRAPED_COLUMNS_BRIEF)
+        all_scraped = pd.concat([prev_scraped, new_scraped], ignore_index=True)
+    else:
+        # No existing file, so just use the new formatted data
+        all_scraped = new_scraped
 
-    # tracked_and_formatted = calculate_price_deltas(all_scraped)
+    tracked_and_formatted = calculate_price_deltas(all_scraped)
 
-    # tracked_and_formatted = tracked_and_formatted.sort_values(by=["name", "timestamp"], ascending=[True, False]).reset_index(drop=True)
-    # update_price_tracker_scraper_csv(PRICE_SCRAPER_FILE, tracked_and_formatted)
+    tracked_and_formatted = tracked_and_formatted.sort_values(by=["name", "timestamp"], ascending=[True, False]).reset_index(drop=True)
+    update_price_tracker_scraper_csv(PRICE_SCRAPER_FILE, tracked_and_formatted)
 
 
     # Do the same thing, but export to its own CSV (& don't bother with deltas)

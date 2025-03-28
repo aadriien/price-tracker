@@ -15,7 +15,7 @@ from src.config import (
     TIMESTAMP_FORMAT
 )
 
-UNIQUE_ITEMS_FILE = add_path_prefix("data/unique_items-TEST.csv")
+UNIQUE_ITEMS_FILE = add_path_prefix("data/unique_items.csv")
 
 PURCHASES_FILE = add_path_prefix("data/purchase_tracker.csv")
 FREE_PROMO_FILE = add_path_prefix("data/free_promo_tracker.csv")

@@ -91,5 +91,12 @@ Plenty more to come, including:
 - **Improved automation**: Reducing manual steps to make tracking seamless, even with flexible data.
 - **Stronger security**: Activation flags, usage alerts, and separate environments for a controlled system.
 
+
+## Example Images
+![Example image of filtered email retrieval](./example-imgs/filtered-email-retrieval.png)
+![Example image of purchase tracker data](./example-imgs/purchase-tracker.png)
+![Example image of price tracker data](./example-imgs/price-tracker.png)
+
+
 This project will evolve as I explore new ideas, fine-tune the approach, and, most importantly, continue learning. Stay tuned! 🚀
 
